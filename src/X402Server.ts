@@ -135,18 +135,17 @@ export class X402Server {
       return;
     }
 
-    // Check for payment proof
-    const paymentToken = req.headers['x-payment-token'] as string;
-    const paymentTxHash = req.headers['x-payment-tx'] as string;
+    // Check for X-PAYMENT header (official x402 spec)
+    const xPaymentHeader = req.headers['x-payment'] as string;
 
-    if (!paymentToken && !paymentTxHash) {
+    if (!xPaymentHeader) {
       // No payment provided - return 402 with payment requirements
       this.sendPaymentRequired(res, endpointConfig);
       return;
     }
 
-    // Verify payment
-    const isValidPayment = await this.verifyPayment(paymentToken || paymentTxHash, endpointConfig);
+    // Verify payment (X-PAYMENT header contains base64 encoded JSON payload)
+    const isValidPayment = await this.verifyPayment(xPaymentHeader, endpointConfig);
 
     if (!isValidPayment) {
       res.writeHead(402, { 'Content-Type': 'application/json' });
@@ -180,6 +179,7 @@ export class X402Server {
 
   /**
    * Send HTTP 402 Payment Required response
+   * Official x402 spec: https://github.com/coinbase/x402
    */
   private sendPaymentRequired(res: http.ServerResponse, endpointConfig: X402EndpointConfig): void {
     const paymentRequirements = this.paymentManager.createPaymentRequirements(
@@ -188,73 +188,86 @@ export class X402Server {
       endpointConfig.description
     );
 
+    // Official x402 402 response structure
     const response = {
-      error: 'Payment Required',
-      payment_required: true,
-      payment_requirements: paymentRequirements,
-      instructions: {
-        step_1: 'Execute payment using x402 protocol',
-        step_2: 'Include payment transaction hash in X-Payment-Tx header',
-        step_3: 'Retry request with payment proof'
-      }
+      x402Version: 1,
+      accepts: [paymentRequirements], // Array of acceptable payment requirements
+      error: 'Payment Required'
     };
 
     res.writeHead(402, {
-      'Content-Type': 'application/json',
-      'X-Payment-Required': 'true',
-      'X-Payment-Amount': endpointConfig.amount.toString(),
-      'X-Payment-Currency': endpointConfig.currency,
-      'X-Payment-Address': paymentRequirements.settlement_address
+      'Content-Type': 'application/json'
     });
 
     res.end(JSON.stringify(response));
   }
 
   /**
-   * Verify payment
+   * Verify payment from X-PAYMENT header
+   * Spec: X-PAYMENT contains base64 encoded JSON with:
+   * { x402Version: number, scheme: string, network: string, payload: <scheme-specific> }
    */
-  private async verifyPayment(paymentIdentifier: string, endpointConfig: X402EndpointConfig): Promise<boolean> {
+  private async verifyPayment(xPaymentHeader: string, endpointConfig: X402EndpointConfig): Promise<boolean> {
     try {
+      // Decode base64 X-PAYMENT header
+      const paymentPayloadJson = Buffer.from(xPaymentHeader, 'base64').toString('utf-8');
+      const paymentPayload = JSON.parse(paymentPayloadJson);
+
+      // Validate x402 version
+      if (paymentPayload.x402Version !== 1) {
+        console.error(`❌ Unsupported x402 version: ${paymentPayload.x402Version}`);
+        return false;
+      }
+
+      // Validate scheme
+      if (paymentPayload.scheme !== 'exact') {
+        console.error(`❌ Unsupported payment scheme: ${paymentPayload.scheme}`);
+        return false;
+      }
+
+      // Extract transaction hash from payload (scheme-specific)
+      // For "exact" scheme on EVM, payload should contain transaction details
+      const txHash = paymentPayload.payload?.transactionHash || paymentPayload.payload?.txHash;
+
+      if (!txHash) {
+        console.error(`❌ No transaction hash in payment payload`);
+        return false;
+      }
+
       // Check cache first
-      const cachedPayment = this.paymentCache.get(paymentIdentifier);
+      const cachedPayment = this.paymentCache.get(txHash);
       if (cachedPayment) {
-        // Check if payment amount matches
-        if (cachedPayment.amount >= endpointConfig.amount && cachedPayment.currency === endpointConfig.currency) {
-          console.log(`✅ Payment verified from cache: ${paymentIdentifier}`);
-          return true;
-        }
+        console.log(`✅ Payment verified from cache: ${txHash}`);
+        return true;
       }
 
-      // Verify payment on-chain if it looks like a transaction hash
-      if (paymentIdentifier.startsWith('0x') && paymentIdentifier.length === 66) {
-        // Create a mock payment proof for verification
-        const mockProof: X402PaymentProof = {
-          payment_id: paymentIdentifier,
-          transaction_hash: paymentIdentifier,
-          main_transaction_hash: paymentIdentifier,
-          from_address: '0x0000000000000000000000000000000000000000',
-          to_address: '0x0000000000000000000000000000000000000000',
-          treasury_address: '0x0000000000000000000000000000000000000000',
-          amount: endpointConfig.amount,
-          currency: endpointConfig.currency,
-          protocol_fee: 0,
-          network: 'base-sepolia' as any,
-          chain_id: 84532,
-          timestamp: new Date(),
-          status: 'confirmed',
-          confirmations: 1
-        };
+      // Verify payment on-chain
+      const mockProof: X402PaymentProof = {
+        payment_id: txHash,
+        transaction_hash: txHash,
+        main_transaction_hash: txHash,
+        from_address: '0x0000000000000000000000000000000000000000',
+        to_address: '0x0000000000000000000000000000000000000000',
+        treasury_address: '0x0000000000000000000000000000000000000000',
+        amount: endpointConfig.amount,
+        currency: endpointConfig.currency,
+        protocol_fee: 0,
+        network: 'base-sepolia' as any,
+        chain_id: 84532,
+        timestamp: new Date(),
+        status: 'confirmed',
+        confirmations: 1
+      };
 
-        const isValid = await this.paymentManager.verifyPayment(mockProof);
-        if (isValid) {
-          // Cache the payment
-          this.paymentCache.set(paymentIdentifier, mockProof);
-          console.log(`✅ Payment verified on-chain: ${paymentIdentifier}`);
-          return true;
-        }
+      const isValid = await this.paymentManager.verifyPayment(mockProof);
+      if (isValid) {
+        // Cache the payment
+        this.paymentCache.set(txHash, mockProof);
+        console.log(`✅ Payment verified on-chain: ${txHash}`);
+        return true;
       }
 
-      console.error(`❌ Payment verification failed: ${paymentIdentifier}`);
+      console.error(`❌ Payment verification failed: ${txHash}`);
       return false;
     } catch (error) {
       console.error(`❌ Payment verification error: ${error}`);

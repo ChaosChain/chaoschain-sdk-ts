@@ -44,15 +44,22 @@ export interface X402PaymentProof {
   confirmations: number;
 }
 
+/**
+ * Official x402 Payment Requirements schema
+ * Spec: https://github.com/coinbase/x402
+ */
 export interface X402PaymentRequirements {
-  amount: number;
-  currency: string;
-  service_description: string;
-  settlement_address: string;
-  network: NetworkConfig;
-  protocol_version: string;
-  expires_at: string;
-  payment_endpoint: string;
+  scheme: string;              // e.g., "exact"
+  network: string;             // Network ID
+  maxAmountRequired: string;   // uint256 as string
+  resource: string;            // URL of resource
+  description: string;         // Service description
+  mimeType: string;            // Response MIME type
+  outputSchema?: object | null; // Response schema
+  payTo: string;               // Address to pay
+  maxTimeoutSeconds: number;   // Max timeout
+  asset: string;               // ERC-20 contract address (or 0x0 for ETH)
+  extra: object | null;        // Extra info (EIP-3009 details for USDC)
 }
 
 /**
@@ -326,24 +333,33 @@ export class X402PaymentManager {
 
   /**
    * Create payment requirements for receiving payments
+   * Official x402 spec: https://github.com/coinbase/x402
    */
   createPaymentRequirements(
     amount: number,
     currency: string = 'USDC',
     serviceDescription: string = 'AI Agent Service',
-    expiryMinutes: number = 30
+    resource: string = '/'
   ): X402PaymentRequirements {
-    const expiryTime = new Date(Date.now() + expiryMinutes * 60 * 1000);
+    // Get USDC address for asset field
+    const asset = currency === 'USDC' ? this.usdcAddresses[this.network] : '0x0000000000000000000000000000000000000000';
 
+    // Official x402 paymentRequirements schema
     return {
-      amount,
-      currency,
-      service_description: serviceDescription,
-      settlement_address: this.wallet.address,
+      scheme: 'exact', // x402 scheme for exact payment amount
       network: this.network,
-      protocol_version: 'x402-v1.0',
-      expires_at: expiryTime.toISOString(),
-      payment_endpoint: `x402://pay/${this.wallet.address}`
+      maxAmountRequired: ethers.parseUnits(amount.toString(), currency === 'USDC' ? 6 : 18).toString(),
+      resource: resource,
+      description: serviceDescription,
+      mimeType: 'application/json',
+      outputSchema: null,
+      payTo: this.wallet.address,
+      maxTimeoutSeconds: 60,
+      asset: asset || '0x0000000000000000000000000000000000000000',
+      extra: currency === 'USDC' && asset ? {
+        name: 'USD Coin',
+        version: '2'
+      } : null
     };
   }
 

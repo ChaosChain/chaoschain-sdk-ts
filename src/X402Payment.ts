@@ -223,36 +223,48 @@ export class X402PaymentManager {
 
   /**
    * Get payment requirements (HTTP 402 response)
+   * Spec: https://github.com/coinbase/x402
    */
-  createPaymentRequirements(
+  async createPaymentRequirements(
     amount: string,
     currency: string = 'USDC',
+    resource: string = '/',
     description?: string
-  ): {
+  ): Promise<{
     statusCode: 402;
     headers: Record<string, string>;
     body: Record<string, unknown>;
-  } {
-    const address = this.signer.getAddress();
+  }> {
+    const address = await this.signer.getAddress();
+    const usdcAddress = currency === 'USDC' ? getUSDCAddress(this.network) : '0x0000000000000000000000000000000000000000';
+
+    // Official x402 paymentRequirements schema
+    const paymentRequirements = {
+      scheme: 'exact', // x402 scheme for exact payment amount
+      network: this.network,
+      maxAmountRequired: ethers.parseUnits(amount, currency === 'ETH' ? 18 : 6).toString(),
+      resource: resource,
+      description: description || 'Payment required for service',
+      mimeType: 'application/json',
+      outputSchema: null,
+      payTo: address,
+      maxTimeoutSeconds: 60,
+      asset: currency === 'USDC' ? usdcAddress : '0x0000000000000000000000000000000000000000',
+      extra: currency === 'USDC' ? {
+        name: 'USD Coin',
+        version: '2'
+      } : null
+    };
 
     return {
       statusCode: 402,
       headers: {
         'Content-Type': 'application/json',
-        'X-Payment-Required': 'x402',
       },
       body: {
-        error: 'Payment Required',
-        paymentRequired: {
-          protocol: 'x402',
-          version: '1.0',
-          amount,
-          currency,
-          recipient: address,
-          description: description || 'Payment required for service',
-          network: this.network,
-          methods: ['crypto'],
-        },
+        x402Version: 1,
+        accepts: [paymentRequirements], // Must be array per spec
+        error: 'Payment Required'
       },
     };
   }
