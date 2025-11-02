@@ -19,6 +19,7 @@ export enum NetworkConfig {
   HEDERA_TESTNET = 'hedera-testnet',
   MODE_TESTNET = 'mode-testnet',
   ZEROG_TESTNET = '0g-testnet',
+  BSC_TESTNET = 'bsc-testnet',
   LOCAL = 'local',
 }
 

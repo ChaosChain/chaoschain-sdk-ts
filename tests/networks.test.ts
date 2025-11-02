@@ -42,6 +42,7 @@ describe('Network Configuration', () => {
   it('should check if network is supported', () => {
     expect(isNetworkSupported('base-sepolia')).toBe(true);
     expect(isNetworkSupported('ethereum-sepolia')).toBe(true);
+    expect(isNetworkSupported('bsc-testnet')).toBe(true);
     expect(isNetworkSupported('invalid-network')).toBe(false);
   });
 
@@ -51,7 +52,21 @@ describe('Network Configuration', () => {
     expect(networks).toContain('base-sepolia');
     expect(networks).toContain('ethereum-sepolia');
     expect(networks).toContain('linea-sepolia');
+    expect(networks).toContain('bsc-testnet');
     expect(networks.length).toBeGreaterThan(0);
+  });
+
+  it('should get network info for BSC Testnet', () => {
+    const info = getNetworkInfo(NetworkConfig.BSC_TESTNET);
+    
+    expect(info).toBeDefined();
+    expect(info.chainId).toBe(97);
+    expect(info.name).toBe('BSC Testnet (Chapel)');
+    expect(info.contracts).toBeDefined();
+    expect(info.contracts.identity).toBe('0xabbd26d86435b35d9c45177725084ee6a2812e40');
+    expect(info.contracts.reputation).toBe('0xeced1af52a0446275e9e6e4f6f26c99977400a6a');
+    expect(info.contracts.validation).toBe('0x7866bd057f09a4940fe2ce43320518c8749a921e');
+    expect(info.nativeCurrency.symbol).toBe('BNB');
   });
 
   it('should throw error for unsupported network', () => {

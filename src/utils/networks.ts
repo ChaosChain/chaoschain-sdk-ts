@@ -33,6 +33,11 @@ export const ERC8004_ADDRESSES: Record<string, ContractAddresses> = {
     reputation: '0x80045d7b72c47bf5ff73737b780cb1a5ba8ee202',
     validation: '0x80041728e0aadf1d1427f9be18d52b7f3afefafb',
   },
+  'bsc-testnet': {
+    identity: '0xabbd26d86435b35d9c45177725084ee6a2812e40',
+    reputation: '0xeced1af52a0446275e9e6e4f6f26c99977400a6a',
+    validation: '0x7866bd057f09a4940fe2ce43320518c8749a921e',
+  },
 };
 
 /**
@@ -91,6 +96,17 @@ export const NETWORK_INFO: Record<string, NetworkInfo> = {
     nativeCurrency: {
       name: 'A0GI',
       symbol: 'A0GI',
+      decimals: 18,
+    },
+  },
+  'bsc-testnet': {
+    chainId: 97,
+    name: 'BSC Testnet (Chapel)',
+    rpcUrl: process.env.BSC_TESTNET_RPC_URL || 'https://data-seed-prebsc-1-s1.binance.org:8545',
+    contracts: ERC8004_ADDRESSES['bsc-testnet'],
+    nativeCurrency: {
+      name: 'Binance Coin',
+      symbol: 'BNB',
       decimals: 18,
     },
   },
