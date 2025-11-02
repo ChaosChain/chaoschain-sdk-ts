@@ -143,6 +143,11 @@ await sdk.requestValidation({
 - **ReputationRegistry**: [`0x80045d7b72c47bf5ff73737b780cb1a5ba8ee202`](https://chainscan-galileo.0g.ai/address/0x80045d7b72c47bf5ff73737b780cb1a5ba8ee202)
 - **ValidationRegistry**: [`0x80041728e0aadf1d1427f9be18d52b7f3afefafb`](https://chainscan-galileo.0g.ai/address/0x80041728e0aadf1d1427f9be18d52b7f3afefafb)
 
+#### BSC Testnet: 
+- **IdentityRegistry**:  `0xabbd26d86435b35d9c45177725084ee6a2812e40`
+- **ReputationRegistry**:`0xeced1af52a0446275e9e6e4f6f26c99977400a6a`
+- **ValidationRegistry**: `0x7866bd057f09a4940fe2ce43320518c8749a921e`
+
 ### **x402 Crypto Payments**
 
 Native integration with Coinbase's x402 HTTP 402 protocol:
