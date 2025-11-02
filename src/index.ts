@@ -21,6 +21,16 @@ export { ChaosAgent } from './ChaosAgent';
 // Payment Components
 // ============================================================================
 export { X402PaymentManager } from './X402PaymentManager';
+export type {
+  X402PaymentRequest,
+  X402PaymentProof,
+  X402PaymentRequirements,
+  PaymentHeader,
+  TransferAuthorizationParams,
+  X402FacilitatorConfig,
+  SettleRequest,
+  SettleResponse
+} from './X402PaymentManager';
 export { PaymentManager } from './PaymentManager';
 export { X402Server } from './X402Server';
 

@@ -1,6 +1,6 @@
 {
   "name": "@chaoschain/sdk",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "TypeScript SDK for building verifiable AI agents on ChaosChain",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -29,65 +29,44 @@
   ],
   "scripts": {
     "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint src",
-    "format": "prettier --write src",
+    "test:facilitator": "tsx test-facilitator-integration.ts",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
     "chaoschain",
+    "ai",
+    "agents",
+    "blockchain",
     "erc-8004",
     "x402",
-    "ai-agents",
-    "blockchain",
-    "web3",
-    "autonomous-agents",
-    "crypto-payments",
-    "verifiable-ai"
+    "eip-3009",
+    "payments",
+    "crypto"
   ],
+  "author": "ChaosChain",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ChaosChain/chaoschain-sdk-ts.git"
+    "url": "https://github.com/ChaosChain/chaoschain-sdk-ts.git"
   },
-  "license": "MIT",
   "dependencies": {
-    "axios": "^1.6.0",
-    "dotenv": "^16.3.0",
-    "ethers": "^6.9.0",
-    "form-data": "^4.0.4",
-    "jose": "^6.1.0",
-    "zod": "^3.22.0"
-  },
-  "peerDependencies": {
-    "@irys/sdk": "^0.1.0",
-    "@pinata/sdk": "^2.1.0",
-    "ipfs-http-client": "^60.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@pinata/sdk": {
-      "optional": true
-    },
-    "@irys/sdk": {
-      "optional": true
-    },
-    "ipfs-http-client": {
-      "optional": true
-    }
+    "ethers": "^6.15.0",
+    "ipfs-http-client": "^60.0.1",
+    "jose": "^5.9.6"
   },
   "devDependencies": {
-    "@types/node": "^20.19.23",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.57.1",
-    "prettier": "^3.6.2",
+    "@types/node": "^20.10.5",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
     "tsup": "^8.5.0",
-    "typescript": "^5.9.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.3.3",
     "vitest": "^1.6.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   }
 }

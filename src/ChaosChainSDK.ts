@@ -115,10 +115,16 @@ export class ChaosChainSDK {
 
     // Initialize payment managers (if enabled)
     if (config.enablePayments !== false) {
-      // Crypto payments (x402)
+      // Crypto payments (x402 with EIP-3009 + facilitator)
       this.x402PaymentManager = new X402PaymentManager(
         this.walletManager.getWallet(),
-        typeof config.network === 'string' ? (config.network as NetworkConfig) : config.network
+        typeof config.network === 'string' ? (config.network as NetworkConfig) : config.network,
+        {
+          facilitatorUrl: config.facilitatorUrl,
+          apiKey: config.facilitatorApiKey,
+          mode: config.facilitatorMode,
+          agentId: config.agentId
+        }
       );
 
       // Traditional + crypto payments (multi-method)

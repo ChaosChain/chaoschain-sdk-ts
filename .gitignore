@@ -11,5 +11,7 @@ sdk
 *.md
 !README.md
 !CONTRIBUTING.md
+!MERCHANT_GUIDE.md
 
-keys
+keys/
+test-facilitator-curl.sh

@@ -290,6 +290,11 @@ export interface ChaosChainSDKConfig {
   storageProvider?: StorageProvider;
   computeProvider?: ComputeProvider;
   walletFile?: string;
+  // x402 Facilitator Configuration (EIP-3009)
+  facilitatorUrl?: string;     // e.g., 'https://facilitator.chaoscha.in'
+  facilitatorApiKey?: string;  // Optional API key for managed facilitator
+  facilitatorMode?: 'managed' | 'decentralized';
+  agentId?: string;            // ERC-8004 tokenId (e.g., '8004#123')
 }
 
 /**
