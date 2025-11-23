@@ -395,7 +395,6 @@ const sdk = new ChaosChainSDK({
   network: NetworkConfig.BASE_SEPOLIA,
   privateKey: process.env.PRIVATE_KEY,
   storageProvider: new ArioStorage(process.env.PRIVATE_KEY, {
-    token: 'ethereum', // or 'pol', 'base-eth'
     appName: 'MyApp',
   }),
 });
