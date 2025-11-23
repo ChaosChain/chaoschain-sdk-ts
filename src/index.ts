@@ -49,6 +49,7 @@ export {
   PinataStorage,
   IrysStorage,
   ZeroGStorage,
+  ArioStorage,
   AutoStorageManager,
   type StorageBackend,
   type StorageResult
