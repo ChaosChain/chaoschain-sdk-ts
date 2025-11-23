@@ -12,21 +12,10 @@ describe('ArioStorage', () => {
 
     it('should create instance with options', () => {
       const storage = new ArioStorage(testPrivateKey, {
-        token: 'ethereum',
         gatewayUrl: 'https://arweave.net',
         appName: 'TestApp',
       });
       expect(storage).toBeDefined();
-    });
-
-    it('should accept different token types', () => {
-      const ethStorage = new ArioStorage(testPrivateKey, { token: 'ethereum' });
-      const polStorage = new ArioStorage(testPrivateKey, { token: 'pol' });
-      const baseStorage = new ArioStorage(testPrivateKey, { token: 'base-eth' });
-
-      expect(ethStorage).toBeDefined();
-      expect(polStorage).toBeDefined();
-      expect(baseStorage).toBeDefined();
     });
 
     it('should use default values when options not provided', () => {

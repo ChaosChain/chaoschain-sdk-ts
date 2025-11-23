@@ -314,20 +314,17 @@ export class ZeroGStorage implements StorageBackend {
  */
 export class ArioStorage implements StorageBackend {
   private privateKey: string;
-  private token: 'ethereum' | 'pol' | 'base-eth';
   private gatewayUrl: string;
   private appName: string;
 
   constructor(
     privateKey: string,
     options?: {
-      token?: 'ethereum' | 'pol' | 'base-eth';
       gatewayUrl?: string;
       appName?: string;
     }
   ) {
     this.privateKey = privateKey;
-    this.token = options?.token ?? 'ethereum';
     this.gatewayUrl = options?.gatewayUrl ?? 'https://arweave.net';
     this.appName = options?.appName ?? 'ChaosChain-SDK';
     console.log(`🏹 Ario (Arweave Turbo) Storage initialized`);
@@ -337,12 +334,10 @@ export class ArioStorage implements StorageBackend {
     try {
       // Dynamic require to make @ardrive/turbo-sdk an optional dependency
       // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { TurboFactory } = require('@ardrive/turbo-sdk');
+      const { TurboFactory, EthereumSigner } = require('@ardrive/turbo-sdk');
 
-      const turbo = TurboFactory.authenticated({
-        privateKey: this.privateKey,
-        token: this.token,
-      });
+      const signer = new EthereumSigner(this.privateKey);
+      const turbo = TurboFactory.authenticated({ signer });
 
       const buffer = typeof data === 'string' ? Buffer.from(data) : data;
 

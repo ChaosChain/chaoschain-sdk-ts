@@ -24,7 +24,6 @@ async function main() {
 
   // Initialize ArioStorage with options
   const arioStorage = new ArioStorage(privateKey, {
-    token: 'ethereum', // Payment token: 'ethereum', 'pol', or 'base-eth'
     gatewayUrl: 'https://arweave.net', // Arweave gateway for downloads
     appName: 'ChaosChain-Example', // Tag for identifying your uploads
   });
