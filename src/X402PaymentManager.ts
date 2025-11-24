@@ -568,7 +568,6 @@ export class X402PaymentManager {
     // USDC has 6 decimals
     const totalAmountWei = ethers.parseUnits(amount.toString(), 6);
     const feeWei = ethers.parseUnits(protocolFee.toString(), 6);
-    const netAmountWei = totalAmountWei - feeWei;
 
     console.log(`💳 Preparing EIP-3009 payment authorization...`);
     console.log(`   Total: ${amount} USDC`);

@@ -119,13 +119,13 @@ export class ChaosAgent {
       if (uri.startsWith('ipfs://')) {
         const cid = uri.substring(7);
         const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
-        return response.json();
+        return response.json() as Promise<AgentMetadata | null>;
       }
 
       // Parse https:// URI
       if (uri.startsWith('https://') || uri.startsWith('http://')) {
         const response = await fetch(uri);
-        return response.json();
+        return response.json() as Promise<AgentMetadata | null>;
       }
 
       return null;
@@ -269,7 +269,7 @@ export class ChaosAgent {
 
     // Calculate feedback hash
     const feedbackContent = feedbackData?.content || feedbackUri;
-    const feedbackHash = ethers.keccak256(ethers.toUtf8Bytes(feedbackContent));
+    const feedbackHash = ethers.keccak256(ethers.toUtf8Bytes(feedbackContent as string));
 
     // Feedback auth (289 bytes: struct + signature)
     // If not provided, use empty bytes (will work if no auth required or for self-feedback)

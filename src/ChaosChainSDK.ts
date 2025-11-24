@@ -417,12 +417,12 @@ export class ChaosChainSDK {
     amount: number,
     currency: string = 'USDC',
     serviceDescription: string = 'AI Agent Service',
-    expiryMinutes: number = 30
+    resource: string = '/',
   ): Record<string, any> {
     if (!this.x402PaymentManager) {
       throw new Error('x402 payments not enabled');
     }
-    return this.x402PaymentManager.createPaymentRequirements(amount, currency, serviceDescription, expiryMinutes);
+    return this.x402PaymentManager.createPaymentRequirements(amount, currency, serviceDescription, resource);
   }
 
   /**
