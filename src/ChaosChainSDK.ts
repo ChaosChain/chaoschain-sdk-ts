@@ -571,7 +571,63 @@ export class ChaosChainSDK {
     });
   }
 
+   /**
+   * Verify a mandate signature for a specific role
+   */
+   verifyMandateSignature(
+    mandate: Mandate | MandateJSON,
+    role: 'client' | 'server',
+    domain?: Record<string, unknown>
+  ): MandateIntegrationResult {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.verifyMandateSignature(mandate, role, domain);
+  }
 
+  /**
+   * Verify all signatures in a mandate (both client and server)
+   */
+  verifyAllMandateSignatures(
+    mandate: Mandate | MandateJSON,
+    domainForClient?: Record<string, unknown>,
+    domainForServer?: Record<string, unknown>
+  ): MandateIntegrationResult {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.verifyAllSignatures(mandate, domainForClient, domainForServer);
+  }
+
+  /**
+   * Get mandate hash from a mandate object
+   */
+  getMandateHash(mandate: Mandate | MandateJSON): string {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getMandateHash(mandate);
+  }
+
+  /**
+   * Get canonical string representation of a mandate
+   */
+  getMandateCanonicalString(mandate: Mandate | MandateJSON): string {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getCanonicalString(mandate);
+  }
+
+  /**
+   * Get mandate integration summary
+   */
+  getMandateIntegrationSummary(): Record<string, any> {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getIntegrationSummary();
+  }
   // ============================================================================
   // Google AP2 Intent Verification Methods
   // ============================================================================
