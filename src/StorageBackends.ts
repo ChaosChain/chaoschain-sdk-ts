@@ -446,8 +446,8 @@ export class AutoStorageManager implements StorageBackend {
       console.log('✅ 0G Storage available');
     }
 
-    // Try Ario (Arweave Turbo)
-    const arioKey = process.env.ARIO_PRIVATE_KEY;
+    // Try Ario (Arweave Turbo) - uses same key as blockchain transactions
+    const arioKey = process.env.PRIVATE_KEY;
     if (arioKey) {
       const ario = new ArioStorage(arioKey);
       this.backends.push(ario);

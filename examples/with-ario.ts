@@ -11,9 +11,14 @@
  */
 
 import { ChaosChainSDK, ArioStorage, NetworkConfig, AgentRole } from '../src';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
+// Optional: load from .env file if dotenv is installed
+try {
+  const dotenv = require('dotenv');
+  dotenv.config();
+} catch {
+  // dotenv not installed, using environment variables directly
+}
 
 async function main() {
   const privateKey = process.env.PRIVATE_KEY;
