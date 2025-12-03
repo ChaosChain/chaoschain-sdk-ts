@@ -26,7 +26,7 @@ export interface StorageBackend {
 
 /**
  * Local IPFS Storage Backend
- * 
+ *
  * Requires: ipfs daemon running locally
  * Cost: Free
  * Setup: brew install ipfs && ipfs daemon
@@ -50,7 +50,7 @@ export class LocalIPFSStorage implements StorageBackend {
 
       const response = await axios.post(`${this.apiUrl}/api/v0/add`, form, {
         headers: form.getHeaders(),
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
       });
 
       const cid = response.data.Hash;
@@ -60,14 +60,13 @@ export class LocalIPFSStorage implements StorageBackend {
         cid,
         url: `ipfs://${cid}`,
         size: response.data.Size,
-        provider: 'local-ipfs'
+        provider: 'local-ipfs',
       };
     } catch (e: any) {
       if (e.code === 'ECONNREFUSED') {
-        throw new StorageError(
-          'Local IPFS daemon not running. Start with: ipfs daemon',
-          { api_url: this.apiUrl }
-        );
+        throw new StorageError('Local IPFS daemon not running. Start with: ipfs daemon', {
+          api_url: this.apiUrl,
+        });
       }
       throw new StorageError(`Local IPFS upload failed: ${e.message}`);
     }
@@ -75,14 +74,10 @@ export class LocalIPFSStorage implements StorageBackend {
 
   async get(cid: string): Promise<Buffer> {
     try {
-      const response = await axios.post(
-        `${this.apiUrl}/api/v0/cat`,
-        null,
-        {
-          params: { arg: cid },
-          responseType: 'arraybuffer'
-        }
-      );
+      const response = await axios.post(`${this.apiUrl}/api/v0/cat`, null, {
+        params: { arg: cid },
+        responseType: 'arraybuffer',
+      });
 
       return Buffer.from(response.data);
     } catch (e: any) {
@@ -93,7 +88,7 @@ export class LocalIPFSStorage implements StorageBackend {
   async pin(cid: string): Promise<void> {
     try {
       await axios.post(`${this.apiUrl}/api/v0/pin/add`, null, {
-        params: { arg: cid }
+        params: { arg: cid },
       });
       console.log(`📌 Pinned to local IPFS: ${cid}`);
     } catch (e: any) {
@@ -104,7 +99,7 @@ export class LocalIPFSStorage implements StorageBackend {
   async unpin(cid: string): Promise<void> {
     try {
       await axios.post(`${this.apiUrl}/api/v0/pin/rm`, null, {
-        params: { arg: cid }
+        params: { arg: cid },
       });
       console.log(`📌 Unpinned from local IPFS: ${cid}`);
     } catch (e: any) {
@@ -115,7 +110,7 @@ export class LocalIPFSStorage implements StorageBackend {
 
 /**
  * Pinata Cloud IPFS Storage Backend
- * 
+ *
  * Requires: Pinata API key
  * Cost: Free tier + paid plans
  * Setup: Get JWT from https://pinata.cloud
@@ -138,15 +133,15 @@ export class PinataStorage implements StorageBackend {
       const form = new FormData();
       form.append('file', buffer, {
         contentType: mime,
-        filename: `file_${Date.now()}`
+        filename: `file_${Date.now()}`,
       });
 
       const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
         headers: {
           ...form.getHeaders(),
-          Authorization: `Bearer ${this.jwtToken}`
+          Authorization: `Bearer ${this.jwtToken}`,
         },
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
       });
 
       const cid = response.data.IpfsHash;
@@ -156,7 +151,7 @@ export class PinataStorage implements StorageBackend {
         cid,
         url: `${this.gatewayUrl}/ipfs/${cid}`,
         size: response.data.PinSize,
-        provider: 'pinata'
+        provider: 'pinata',
       };
     } catch (e: any) {
       throw new StorageError(`Pinata upload failed: ${e.message}`);
@@ -166,7 +161,7 @@ export class PinataStorage implements StorageBackend {
   async get(cid: string): Promise<Buffer> {
     try {
       const response = await axios.get(`${this.gatewayUrl}/ipfs/${cid}`, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
 
       return Buffer.from(response.data);
@@ -183,8 +178,8 @@ export class PinataStorage implements StorageBackend {
         {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
       console.log(`📌 Pinned to Pinata: ${cid}`);
@@ -197,8 +192,8 @@ export class PinataStorage implements StorageBackend {
     try {
       await axios.delete(`https://api.pinata.cloud/pinning/unpin/${cid}`, {
         headers: {
-          Authorization: `Bearer ${this.jwtToken}`
-        }
+          Authorization: `Bearer ${this.jwtToken}`,
+        },
       });
       console.log(`📌 Unpinned from Pinata: ${cid}`);
     } catch (e: any) {
@@ -209,7 +204,7 @@ export class PinataStorage implements StorageBackend {
 
 /**
  * Irys (Arweave) Storage Backend
- * 
+ *
  * Requires: Arweave wallet key
  * Cost: Pay per upload (permanent storage)
  * Setup: Fund wallet with AR tokens
@@ -230,14 +225,16 @@ export class IrysStorage implements StorageBackend {
       // const receipt = await irys.upload(data, { tags: [{ name: 'Content-Type', value: mime }] });
 
       // For now, simulate
-      const mockCid = `ar_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 15)}`;
+      const mockCid = `ar_${Date.now().toString(36)}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}`;
 
       console.log(`✅ Uploaded to Irys: ${mockCid}`);
 
       return {
         cid: mockCid,
         url: `https://arweave.net/${mockCid}`,
-        provider: 'irys'
+        provider: 'irys',
       };
     } catch (e: any) {
       throw new StorageError(`Irys upload failed: ${e.message}`);
@@ -247,7 +244,7 @@ export class IrysStorage implements StorageBackend {
   async get(cid: string): Promise<Buffer> {
     try {
       const response = await axios.get(`https://arweave.net/${cid}`, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
 
       return Buffer.from(response.data);
@@ -259,7 +256,7 @@ export class IrysStorage implements StorageBackend {
 
 /**
  * 0G Storage Backend
- * 
+ *
  * Requires: 0G CLI running as sidecar
  * Cost: Gas fees on 0G Network
  * Setup: Install 0G CLI and start sidecar
@@ -278,14 +275,16 @@ export class ZeroGStorage implements StorageBackend {
     try {
       // In production, call 0G Storage CLI via gRPC
       // For now, simulate
-      const mockCid = `0g_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 15)}`;
+      const mockCid = `0g_${Date.now().toString(36)}_${Math.random()
+        .toString(36)
+        .substring(2, 15)}`;
 
       console.log(`✅ Uploaded to 0G Storage: ${mockCid}`);
 
       return {
         cid: mockCid,
         url: `0g://${mockCid}`,
-        provider: '0g-storage'
+        provider: '0g-storage',
       };
     } catch (e: any) {
       throw new StorageError(`0G Storage upload failed: ${e.message}`);
@@ -304,8 +303,95 @@ export class ZeroGStorage implements StorageBackend {
 }
 
 /**
+ * Ario (Arweave Turbo) Storage Backend
+ *
+ * Permanent storage on Arweave via AR.IO's Turbo service.
+ * Uploads < 100kb are free, above that you need credits: https://turbo.ar.io
+ *
+ * Requires: @ardrive/turbo-sdk
+ * Cost: Pay per upload (permanent storage)
+ * Setup: npm install @ardrive/turbo-sdk
+ */
+export class ArioStorage implements StorageBackend {
+  private privateKey: string;
+  private gatewayUrl: string;
+  private appName: string;
+
+  constructor(
+    privateKey: string,
+    options?: {
+      gatewayUrl?: string;
+      appName?: string;
+    }
+  ) {
+    this.privateKey = privateKey;
+    this.gatewayUrl = options?.gatewayUrl ?? 'https://arweave.net';
+    this.appName = options?.appName ?? 'ChaosChain-SDK';
+    console.log(`🏹 Ario (Arweave Turbo) Storage initialized`);
+  }
+
+  async put(data: Buffer | string, mime: string = 'application/json'): Promise<StorageResult> {
+    try {
+      // Dynamic require to make @ardrive/turbo-sdk an optional dependency
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { TurboFactory, EthereumSigner } = require('@ardrive/turbo-sdk');
+
+      const signer = new EthereumSigner(this.privateKey);
+      const turbo = TurboFactory.authenticated({ signer });
+
+      const buffer = typeof data === 'string' ? Buffer.from(data) : data;
+
+      const { Readable } = require('stream');
+      const result = await turbo.uploadFile({
+        fileStreamFactory: () => Readable.from(buffer),
+        fileSizeFactory: () => buffer.length,
+        dataItemOpts: {
+          tags: [
+            { name: 'Content-Type', value: mime },
+            { name: 'App-Name', value: this.appName },
+          ],
+        },
+      });
+
+      const txId = result.id;
+      console.log(`✅ Uploaded to Ario (Arweave): ${txId}`);
+
+      return {
+        cid: txId,
+        url: `${this.gatewayUrl}/${txId}`,
+        size: buffer.length,
+        provider: 'ario',
+      };
+    } catch (e: any) {
+      // Module not installed
+      if (e.code === 'MODULE_NOT_FOUND' || e.message?.includes('Cannot find module')) {
+        throw new StorageError(
+          'AR.IO Network Storage requires @ardrive/turbo-sdk. Install with: npm install @ardrive/turbo-sdk'
+        );
+      }
+
+      throw new StorageError(`Ario upload failed: ${e.message}`);
+    }
+  }
+
+  async get(cid: string): Promise<Buffer> {
+    try {
+      const response = await axios.get(`${this.gatewayUrl}/${cid}`, {
+        responseType: 'arraybuffer',
+      });
+
+      return Buffer.from(response.data);
+    } catch (e: any) {
+      throw new StorageError(`Failed to retrieve from Arweave: ${e.message}`);
+    }
+  }
+
+  // Note: pin/unpin not implemented - Arweave storage is permanent
+}
+
+/**
  * Auto-detecting Storage Manager
- * 
+ *
  * Automatically selects the best available storage backend:
  * 1. Try local IPFS first (fastest, free)
  * 2. Fall back to Pinata if configured
@@ -360,6 +446,15 @@ export class AutoStorageManager implements StorageBackend {
       console.log('✅ 0G Storage available');
     }
 
+    // Try Ario (Arweave Turbo) - uses same key as blockchain transactions
+    const arioKey = process.env.PRIVATE_KEY;
+    if (arioKey) {
+      const ario = new ArioStorage(arioKey);
+      this.backends.push(ario);
+      if (!this.preferredBackend) this.preferredBackend = ario;
+      console.log('✅ Ario available');
+    }
+
     if (this.backends.length === 0) {
       console.warn('⚠️  No storage backends available! Please configure at least one.');
     } else {
@@ -403,4 +498,3 @@ export class AutoStorageManager implements StorageBackend {
     return this.backends.map((backend) => backend.constructor.name);
   }
 }
-
