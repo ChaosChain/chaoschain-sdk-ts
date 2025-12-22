@@ -3,7 +3,7 @@
  * Production-ready SDK for building verifiable AI agents with complete feature parity to Python SDK
  */
 
-import { ethers } from 'ethers';
+import { ethers, type HDNodeWallet } from 'ethers';
 import { WalletManager } from './WalletManager';
 import { ChaosAgent } from './ChaosAgent';
 import { X402PaymentManager } from './X402PaymentManager';
@@ -13,6 +13,9 @@ import { GoogleAP2Integration, GoogleAP2IntegrationResult } from './GoogleAP2Int
 import { A2AX402Extension } from './A2AX402Extension';
 import { ProcessIntegrity } from './ProcessIntegrity';
 import { AutoStorageManager, StorageBackend } from './StorageBackends';
+import { MandateIntegration, MandateCreateParams, MandateIntegrationResult } from './Mandate';
+import type { MandateJSON } from '@quillai-network/mandates-core';
+import { Mandate } from '@quillai-network/mandates-core';
 // import { IPFSLocalStorage } from './providers/storage/IPFSLocal'; // Not used
 import {
   ChaosChainSDKConfig,
@@ -21,7 +24,6 @@ import {
   AgentMetadata,
   AgentRegistration,
   FeedbackParams,
-  ValidationRequestParams,
   UploadResult,
   UploadOptions,
   ComputeProvider,
@@ -57,6 +59,7 @@ export class ChaosChainSDK {
   public googleAP2?: GoogleAP2Integration;
   public a2aX402Extension?: A2AX402Extension;
   public processIntegrity?: ProcessIntegrity;
+  public mandateIntegration?: MandateIntegration;
 
   // Configuration
   public readonly agentName: string;
@@ -159,11 +162,20 @@ export class ChaosChainSDK {
       );
     }
 
+    // Initialize Mandate Integration (if enabled)
+    if (config.enableMandate !== false) {
+      this.mandateIntegration = new MandateIntegration(
+        this.agentName,
+        this.agentRole
+      );
+    }
+
     // Initialize Process Integrity (if enabled)
     if (config.enableProcessIntegrity !== false) {
       this.processIntegrity = new ProcessIntegrity(
-        this.storageBackend,
-        this.computeProvider
+        this.agentName,
+        this.storageBackend as any,
+        (this.computeProvider as any) || null
       );
     }
 
@@ -178,6 +190,7 @@ export class ChaosChainSDK {
     console.log(`     - x402 Payments: ${this.x402PaymentManager ? '✅' : '❌'}`);
     console.log(`     - Multi-Payment: ${this.paymentManager ? '✅' : '❌'}`);
     console.log(`     - Google AP2: ${this.googleAP2 ? '✅' : '❌'}`);
+    console.log(`     - Mandate Integration: ${this.mandateIntegration ? '✅' : '❌'}`);
     console.log(`     - Process Integrity: ${this.processIntegrity ? '✅' : '❌'}`);
     console.log(`     - Storage: ✅`);
   }
@@ -417,12 +430,12 @@ export class ChaosChainSDK {
     amount: number,
     currency: string = 'USDC',
     serviceDescription: string = 'AI Agent Service',
-    expiryMinutes: number = 30
+    resource: string = '/',
   ): Record<string, any> {
     if (!this.x402PaymentManager) {
       throw new Error('x402 payments not enabled');
     }
-    return this.x402PaymentManager.createPaymentRequirements(amount, currency, serviceDescription, expiryMinutes);
+    return this.x402PaymentManager.createPaymentRequirements(amount, currency, serviceDescription, resource);
   }
 
   /**
@@ -523,6 +536,98 @@ export class ChaosChainSDK {
     return this.paymentManager.getPaymentMethodsStatus();
   }
 
+  // ============================================================================
+  // Mandate Integration Methods
+  // ============================================================================
+
+  /**
+   * Create a new mandate using mandates-core
+   */
+  createMandate(params: MandateCreateParams): MandateIntegrationResult {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.createMandate(params);
+  }
+
+  /**
+   * Sign a mandate using the agent's role and wallet
+   */
+  async signMandate(
+    mandate: Mandate | MandateJSON,
+    alg?: 'eip191' | 'eip712',
+    domain?: Record<string, unknown>
+  ): Promise<MandateIntegrationResult> {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    const wallet = this.walletManager.getWallet();
+    return this.mandateIntegration.signMandate({
+      mandate,
+      agentRole: this.agentRole,
+      wallet: wallet as any as HDNodeWallet,
+      alg,
+      domain
+    });
+  }
+
+   /**
+   * Verify a mandate signature for a specific role
+   */
+   verifyMandateSignature(
+    mandate: Mandate | MandateJSON,
+    role: 'client' | 'server',
+    domain?: Record<string, unknown>
+  ): MandateIntegrationResult {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.verifyMandateSignature(mandate, role, domain);
+  }
+
+  /**
+   * Verify all signatures in a mandate (both client and server)
+   */
+  verifyAllMandateSignatures(
+    mandate: Mandate | MandateJSON,
+    domainForClient?: Record<string, unknown>,
+    domainForServer?: Record<string, unknown>
+  ): MandateIntegrationResult {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.verifyAllSignatures(mandate, domainForClient, domainForServer);
+  }
+
+  /**
+   * Get mandate hash from a mandate object
+   */
+  getMandateHash(mandate: Mandate | MandateJSON): string {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getMandateHash(mandate);
+  }
+
+  /**
+   * Get canonical string representation of a mandate
+   */
+  getMandateCanonicalString(mandate: Mandate | MandateJSON): string {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getCanonicalString(mandate);
+  }
+
+  /**
+   * Get mandate integration summary
+   */
+  getMandateIntegrationSummary(): Record<string, any> {
+    if (!this.mandateIntegration) {
+      throw new Error('Mandate integration not enabled');
+    }
+    return this.mandateIntegration.getIntegrationSummary();
+  }
   // ============================================================================
   // Google AP2 Intent Verification Methods
   // ============================================================================
@@ -666,7 +771,8 @@ export class ChaosChainSDK {
    * Get wallet balance
    */
   async getBalance(): Promise<string> {
-    return this.walletManager.getBalance();
+    const balance = await this.walletManager.getBalance();
+    return ethers.formatEther(balance);
   }
 
   /**
@@ -694,6 +800,7 @@ export class ChaosChainSDK {
         x402_crypto_payments: !!this.x402PaymentManager,
         traditional_payments: !!this.paymentManager,
         google_ap2_intents: !!this.googleAP2,
+        mandate_integration: !!this.mandateIntegration,
         process_integrity: !!this.processIntegrity,
         storage: true,
         compute: !!this.computeProvider

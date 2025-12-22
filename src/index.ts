@@ -38,6 +38,12 @@ export { X402Server } from './X402Server';
 // Advanced Integrations
 // ============================================================================
 export { GoogleAP2Integration } from './GoogleAP2Integration';
+export { MandateIntegration } from './Mandate';
+export type {
+  MandateCreateParams,
+  MandateSignParams,
+  MandateIntegrationResult
+} from './Mandate';
 export { A2AX402Extension } from './A2AX402Extension';
 // export { ProcessIntegrity } from './ProcessIntegrity'; // TODO: Fix export
 

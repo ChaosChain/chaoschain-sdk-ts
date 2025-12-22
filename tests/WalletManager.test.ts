@@ -187,7 +187,7 @@ describe('WalletManager', () => {
       const jsonContent = JSON.parse(fileContent);
       
       // Check that it's encrypted (has crypto field)
-      expect(jsonContent).toHaveProperty('crypto');
+      expect(jsonContent).toHaveProperty('Crypto');
       expect(jsonContent).toHaveProperty('address');
     });
   });

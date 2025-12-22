@@ -285,6 +285,7 @@ export interface ChaosChainSDKConfig {
   mnemonic?: string;
   rpcUrl?: string;
   enableAP2?: boolean;
+  enableMandate?: boolean;
   enableProcessIntegrity?: boolean;
   enablePayments?: boolean;
   enableStorage?: boolean;

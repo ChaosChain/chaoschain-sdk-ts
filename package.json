@@ -55,6 +55,7 @@
     "url": "https://github.com/ChaosChain/chaoschain-sdk-ts.git"
   },
   "dependencies": {
+    "@quillai-network/mandates-core": "^0.1.2",
     "ethers": "^6.15.0",
     "ipfs-http-client": "^60.0.1",
     "jose": "^5.9.6"
