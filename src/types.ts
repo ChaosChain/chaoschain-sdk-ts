@@ -45,9 +45,9 @@ export enum AgentRole {
   CLIENT = 'client',
   ORCHESTRATOR = 'orchestrator',
 
-  // Legacy alises for backward compatibility
-  SERVER = 'server', // Deprecated: use WORKER
-  VALIDATOR = 'validator', // Deprecated: use VERIFIER
+  // Legacy aliases for backward compatibility
+  SERVER = 'worker', // Deprecated: use WORKER
+  VALIDATOR = 'verifier', // Deprecated: use VERIFIER
 }
 
 // ============================================================================
@@ -61,9 +61,17 @@ export interface ContractAddresses {
   identity: string;
   reputation: string;
   validation: string;
-  rewardsDistributor: string | null;
-  chaosCore: string | null;
-  network: NetworkConfig | null;
+  identityRegistry?: string;
+  reputationRegistry?: string;
+  validationRegistry?: string;
+  identity_registry?: string;
+  reputation_registry?: string;
+  validation_registry?: string;
+  rewardsDistributor?: string | null;
+  chaosCore?: string | null;
+  rewards_distributor?: string | null;
+  chaos_core?: string | null;
+  network?: NetworkConfig | null;
 }
 
 /**
@@ -201,20 +209,6 @@ export interface X402Payment {
   feeTxHash?: string;
 }
 
-/**
- * Payment receipt
- */
-export interface PaymentReceipt {
-  paymentId: string;
-  from: string;
-  to: string;
-  amount: string;
-  currency: string;
-  timestamp: number;
-  signature: string;
-  txHash: string;
-}
-
 // ============================================================================
 // Storage Provider Types
 // ============================================================================
@@ -268,26 +262,33 @@ export interface ComputeProvider {
  * TEE attestation data
  */
 export interface TEEAttestation {
-  provider: 'phala' | 'sgx' | 'nitro' | 'zerog';
-  attestationData: string;
-  publicKey: string;
-  timestamp: number;
+  job_id: string;
+  provider: string;
+  execution_hash: string;
+  verification_method: string;
+  model?: string;
+  attestation_data: unknown;
+  proof?: string;
+  metadata?: unknown;
+  timestamp: string;
 }
 
 /**
  * Integrity proof structure
  */
 export interface IntegrityProof {
-  proofId: string;
-  functionName: string;
-  inputs: Record<string, unknown>;
-  outputs: Record<string, unknown>;
-  codeHash: string;
-  executionHash: string;
-  timestamp: number;
-  signature: string;
-  ipfsCid?: string;
-  teeAttestation?: TEEAttestation;
+  proof_id: string;
+  function_name: string;
+  code_hash: string;
+  execution_hash: string;
+  timestamp: Date;
+  agent_name: string;
+  verification_status: string;
+  ipfs_cid?: string;
+  tee_attestation?: TEEAttestation;
+  tee_provider?: string;
+  tee_job_id?: string;
+  tee_execution_hash?: string;
 }
 
 // ============================================================================
@@ -436,11 +437,11 @@ export interface PaymentProof {
  */
 export interface ValidationResult {
   validationId: string;
-  validatorAgentId: string;
+  validatorAgentId: number;
   score: number;
   qualityRating: string;
   validationSummary: string;
-  detailedAssesment: Record<string, unknown>;
+  detailedAssessment: Record<string, unknown>;
   timestamp: Date;
   ipfsCid?: string;
 }
