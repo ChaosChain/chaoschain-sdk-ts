@@ -10,9 +10,16 @@
 import { NetworkConfig } from '../types';
 
 /**
- * Identity Registry ABI (ERC-8004 v1.0 with ERC-721)
+ * Get embedded Identity Registry ABI for ERC-8004 v1.0.
+ *
+ * v1.0 uses ERC-721 with URIStorage extension. Key changes:
+ * - register() functions replace newAgent()
+ * - Agents are ERC-721 NFTs with tokenURI
+ * - ownerOf() to get agent owner
+ * - tokenURI() to get registration file
  */
 export const IDENTITY_REGISTRY_ABI = [
+  // ERC - 8004 v1.0 Registration Functions
   {
     inputs: [
       { name: 'tokenURI_', type: 'string' },
@@ -44,7 +51,7 @@ export const IDENTITY_REGISTRY_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-  // ERC-721 Standard Functions
+  // ERC - 721 Standard Functions
   {
     inputs: [{ name: 'tokenId', type: 'uint256' }],
     name: 'ownerOf',
@@ -147,13 +154,6 @@ export const IDENTITY_REGISTRY_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-  {
-    inputs: [],
-    name: 'totalAgents',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
   // Events
   {
     anonymous: false,
@@ -176,7 +176,7 @@ export const IDENTITY_REGISTRY_ABI = [
     name: 'MetadataSet',
     type: 'event',
   },
-  // ERC-721 Standard Events
+  // ERC - 721 Standard Events
   {
     anonymous: false,
     inputs: [
@@ -228,150 +228,151 @@ export const IDENTITY_REGISTRY_ABI = [
  * - On-chain scores (0-100) with tags
  * - revokeFeedback() support
  * - appendResponse() for audit trails
+ * - TODO: add tokenOfOwnerByIndex
  */
 export const REPUTATION_REGISTRY_ABI = [
   // Core Functions
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'score', type: 'uint8' },
-      { name: 'tag1', type: 'bytes32' },
-      { name: 'tag2', type: 'bytes32' },
-      { name: 'feedbackUri', type: 'string' },
-      { name: 'feedbackHash', type: 'bytes32' },
-      { name: 'feedbackAuth', type: 'bytes' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "score", "type": "uint8" },
+      { "name": "tag1", "type": "bytes32" },
+      { "name": "tag2", "type": "bytes32" },
+      { "name": "feedbackUri", "type": "string" },
+      { "name": "feedbackHash", "type": "bytes32" },
+      { "name": "feedbackAuth", "type": "bytes" }
     ],
-    name: 'giveFeedback',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "name": "giveFeedback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'feedbackIndex', type: 'uint64' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "feedbackIndex", "type": "uint64" }
     ],
-    name: 'revokeFeedback',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "name": "revokeFeedback",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'clientAddress', type: 'address' },
-      { name: 'feedbackIndex', type: 'uint64' },
-      { name: 'responseUri', type: 'string' },
-      { name: 'responseHash', type: 'bytes32' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "clientAddress", "type": "address" },
+      { "name": "feedbackIndex", "type": "uint64" },
+      { "name": "responseUri", "type": "string" },
+      { "name": "responseHash", "type": "bytes32" }
     ],
-    name: 'appendResponse',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "name": "appendResponse",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   // Read Functions
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'clientAddresses', type: 'address[]' },
-      { name: 'tag1', type: 'bytes32' },
-      { name: 'tag2', type: 'bytes32' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "clientAddresses", "type": "address[]" },
+      { "name": "tag1", "type": "bytes32" },
+      { "name": "tag2", "type": "bytes32" }
     ],
-    name: 'getSummary',
-    outputs: [
-      { name: 'count', type: 'uint64' },
-      { name: 'averageScore', type: 'uint8' },
+    "name": "getSummary",
+    "outputs": [
+      { "name": "count", "type": "uint64" },
+      { "name": "averageScore", "type": "uint8" }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'clientAddress', type: 'address' },
-      { name: 'index', type: 'uint64' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "clientAddress", "type": "address" },
+      { "name": "index", "type": "uint64" }
     ],
-    name: 'readFeedback',
-    outputs: [
-      { name: 'score', type: 'uint8' },
-      { name: 'tag1', type: 'bytes32' },
-      { name: 'tag2', type: 'bytes32' },
-      { name: 'isRevoked', type: 'bool' },
+    "name": "readFeedback",
+    "outputs": [
+      { "name": "score", "type": "uint8" },
+      { "name": "tag1", "type": "bytes32" },
+      { "name": "tag2", "type": "bytes32" },
+      { "name": "isRevoked", "type": "bool" }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'clientAddresses', type: 'address[]' },
-      { name: 'tag1', type: 'bytes32' },
-      { name: 'tag2', type: 'bytes32' },
-      { name: 'includeRevoked', type: 'bool' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "clientAddresses", "type": "address[]" },
+      { "name": "tag1", "type": "bytes32" },
+      { "name": "tag2", "type": "bytes32" },
+      { "name": "includeRevoked", "type": "bool" }
     ],
-    name: 'readAllFeedback',
-    outputs: [
-      { name: 'clients', type: 'address[]' },
-      { name: 'scores', type: 'uint8[]' },
-      { name: 'tag1s', type: 'bytes32[]' },
-      { name: 'tag2s', type: 'bytes32[]' },
-      { name: 'revokedStatuses', type: 'bool[]' },
+    "name": "readAllFeedback",
+    "outputs": [
+      { "name": "clients", "type": "address[]" },
+      { "name": "scores", "type": "uint8[]" },
+      { "name": "tag1s", "type": "bytes32[]" },
+      { "name": "tag2s", "type": "bytes32[]" },
+      { "name": "revokedStatuses", "type": "bool[]" }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [{ name: 'agentId', type: 'uint256' }],
-    name: 'getClients',
-    outputs: [{ name: 'clientList', type: 'address[]' }],
-    stateMutability: 'view',
-    type: 'function',
+    "inputs": [{ "name": "agentId", "type": "uint256" }],
+    "name": "getClients",
+    "outputs": [{ "name": "clientList", "type": "address[]" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'clientAddress', type: 'address' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "clientAddress", "type": "address" }
     ],
-    name: 'getLastIndex',
-    outputs: [{ name: 'lastIndex', type: 'uint64' }],
-    stateMutability: 'view',
-    type: 'function',
+    "name": "getLastIndex",
+    "outputs": [{ "name": "lastIndex", "type": "uint64" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: 'getIdentityRegistry',
-    outputs: [{ name: 'registry', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
+    "inputs": [],
+    "name": "getIdentityRegistry",
+    "outputs": [{ "name": "registry", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   // Events
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'agentId', type: 'uint256' },
-      { indexed: true, name: 'clientAddress', type: 'address' },
-      { indexed: false, name: 'score', type: 'uint8' },
-      { indexed: true, name: 'tag1', type: 'bytes32' },
-      { indexed: false, name: 'tag2', type: 'bytes32' },
-      { indexed: false, name: 'feedbackUri', type: 'string' },
-      { indexed: false, name: 'feedbackHash', type: 'bytes32' },
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "agentId", "type": "uint256" },
+      { "indexed": true, "name": "clientAddress", "type": "address" },
+      { "indexed": false, "name": "score", "type": "uint8" },
+      { "indexed": true, "name": "tag1", "type": "bytes32" },
+      { "indexed": false, "name": "tag2", "type": "bytes32" },
+      { "indexed": false, "name": "feedbackUri", "type": "string" },
+      { "indexed": false, "name": "feedbackHash", "type": "bytes32" }
     ],
-    name: 'NewFeedback',
-    type: 'event',
+    "name": "NewFeedback",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'agentId', type: 'uint256' },
-      { indexed: true, name: 'clientAddress', type: 'address' },
-      { indexed: false, name: 'feedbackIndex', type: 'uint64' },
-      { indexed: true, name: 'responder', type: 'address' },
-      { indexed: false, name: 'responseUri', type: 'string' },
-      { indexed: false, name: 'responseHash', type: 'bytes32' },
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "agentId", "type": "uint256" },
+      { "indexed": true, "name": "clientAddress", "type": "address" },
+      { "indexed": false, "name": "feedbackIndex", "type": "uint64" },
+      { "indexed": true, "name": "responder", "type": "address" },
+      { "indexed": false, "name": "responseUri", "type": "string" },
+      { "indexed": false, "name": "responseHash", "type": "bytes32" }
     ],
-    name: 'ResponseAppended',
-    type: 'event',
-  },
+    "name": "ResponseAppended",
+    "type": "event"
+  }
 ];
 
 /**
@@ -387,107 +388,107 @@ export const REPUTATION_REGISTRY_ABI = [
 export const VALIDATION_REGISTRY_ABI = [
   // Core Functions
   {
-    inputs: [
-      { name: 'validatorAddress', type: 'address' },
-      { name: 'agentId', type: 'uint256' },
-      { name: 'requestUri', type: 'string' },
-      { name: 'requestHash', type: 'bytes32' },
+    "inputs": [
+      { "name": "validatorAddress", "type": "address" },
+      { "name": "agentId", "type": "uint256" },
+      { "name": "requestUri", "type": "string" },
+      { "name": "requestHash", "type": "bytes32" }
     ],
-    name: 'validationRequest',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "name": "validationRequest",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'requestHash', type: 'bytes32' },
-      { name: 'response', type: 'uint8' },
-      { name: 'responseUri', type: 'string' },
-      { name: 'responseHash', type: 'bytes32' },
-      { name: 'tag', type: 'bytes32' },
+    "inputs": [
+      { "name": "requestHash", "type": "bytes32" },
+      { "name": "response", "type": "uint8" },
+      { "name": "responseUri", "type": "string" },
+      { "name": "responseHash", "type": "bytes32" },
+      { "name": "tag", "type": "bytes32" }
     ],
-    name: 'validationResponse',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "name": "validationResponse",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   // Read Functions
   {
-    inputs: [{ name: 'requestHash', type: 'bytes32' }],
-    name: 'getValidationStatus',
-    outputs: [
-      { name: 'validatorAddress', type: 'address' },
-      { name: 'agentId', type: 'uint256' },
-      { name: 'response', type: 'uint8' },
-      { name: 'responseHash', type: 'bytes32' },
-      { name: 'tag', type: 'bytes32' },
-      { name: 'lastUpdate', type: 'uint256' },
+    "inputs": [{ "name": "requestHash", "type": "bytes32" }],
+    "name": "getValidationStatus",
+    "outputs": [
+      { "name": "validatorAddress", "type": "address" },
+      { "name": "agentId", "type": "uint256" },
+      { "name": "response", "type": "uint8" },
+      { "name": "responseHash", "type": "bytes32" },
+      { "name": "tag", "type": "bytes32" },
+      { "name": "lastUpdate", "type": "uint256" }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
-      { name: 'agentId', type: 'uint256' },
-      { name: 'validatorAddresses', type: 'address[]' },
-      { name: 'tag', type: 'bytes32' },
+    "inputs": [
+      { "name": "agentId", "type": "uint256" },
+      { "name": "validatorAddresses", "type": "address[]" },
+      { "name": "tag", "type": "bytes32" }
     ],
-    name: 'getSummary',
-    outputs: [
-      { name: 'count', type: 'uint64' },
-      { name: 'avgResponse', type: 'uint8' },
+    "name": "getSummary",
+    "outputs": [
+      { "name": "count", "type": "uint64" },
+      { "name": "avgResponse", "type": "uint8" }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [{ name: 'agentId', type: 'uint256' }],
-    name: 'getAgentValidations',
-    outputs: [{ name: 'requestHashes', type: 'bytes32[]' }],
-    stateMutability: 'view',
-    type: 'function',
+    "inputs": [{ "name": "agentId", "type": "uint256" }],
+    "name": "getAgentValidations",
+    "outputs": [{ "name": "requestHashes", "type": "bytes32[]" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [{ name: 'validatorAddress', type: 'address' }],
-    name: 'getValidatorRequests',
-    outputs: [{ name: 'requestHashes', type: 'bytes32[]' }],
-    stateMutability: 'view',
-    type: 'function',
+    "inputs": [{ "name": "validatorAddress", "type": "address" }],
+    "name": "getValidatorRequests",
+    "outputs": [{ "name": "requestHashes", "type": "bytes32[]" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: 'getIdentityRegistry',
-    outputs: [{ name: 'registry', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
+    "inputs": [],
+    "name": "getIdentityRegistry",
+    "outputs": [{ "name": "registry", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
   },
   // Events
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'validatorAddress', type: 'address' },
-      { indexed: true, name: 'agentId', type: 'uint256' },
-      { indexed: false, name: 'requestUri', type: 'string' },
-      { indexed: true, name: 'requestHash', type: 'bytes32' },
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "validatorAddress", "type": "address" },
+      { "indexed": true, "name": "agentId", "type": "uint256" },
+      { "indexed": false, "name": "requestUri", "type": "string" },
+      { "indexed": true, "name": "requestHash", "type": "bytes32" }
     ],
-    name: 'ValidationRequest',
-    type: 'event',
+    "name": "ValidationRequest",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: 'validatorAddress', type: 'address' },
-      { indexed: true, name: 'agentId', type: 'uint256' },
-      { indexed: true, name: 'requestHash', type: 'bytes32' },
-      { indexed: false, name: 'response', type: 'uint8' },
-      { indexed: false, name: 'responseUri', type: 'string' },
-      { indexed: false, name: 'responseHash', type: 'bytes32' },
-      { indexed: false, name: 'tag', type: 'bytes32' },
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "name": "validatorAddress", "type": "address" },
+      { "indexed": true, "name": "agentId", "type": "uint256" },
+      { "indexed": true, "name": "requestHash", "type": "bytes32" },
+      { "indexed": false, "name": "response", "type": "uint8" },
+      { "indexed": false, "name": "responseUri", "type": "string" },
+      { "indexed": false, "name": "responseHash", "type": "bytes32" },
+      { "indexed": false, "name": "tag", "type": "bytes32" }
     ],
-    name: 'ValidationResponse',
-    type: 'event',
-  },
-];
+    "name": "ValidationResponse",
+    "type": "event"
+  }
+] as const;
 
 /**
  * ERC-20 USDC ABI (for x402 payments)
@@ -577,14 +578,14 @@ export const ERC20_ABI = [
  * USDC token addresses by network
  */
 export const USDC_ADDRESSES: Record<string, string> = {
-  'ethereum-sepolia': '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
-  'base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
-  'optimism-sepolia': '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
-  'linea-sepolia': '0x0000000000000000000000000000000000000000',
-  'hedera-testnet': '0x0000000000000000000000000000000000000000',
-  '0g-testnet': '0x0000000000000000000000000000000000000000',
-  'bsc-testnet': '0x0000000000000000000000000000000000000000',
-  local: '0x0000000000000000000000000000000000000000',
+  [NetworkConfig.ETHEREUM_SEPOLIA]: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
+  [NetworkConfig.BASE_SEPOLIA]: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+  [NetworkConfig.OPTIMISM_SEPOLIA]: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+  [NetworkConfig.LINEA_SEPOLIA]: '0x0000000000000000000000000000000000000000', // TODO: Add Linea Sepolia USDC address
+  [NetworkConfig.HEDERA_TESTNET]: '0x0000000000000000000000000000000000000000', // TODO: Add Hedera Testnet USDC address
+  [NetworkConfig.ZEROG_TESTNET]: '0x0000000000000000000000000000000000000000', // TODO: Add Zerog Testnet USDC address
+  [NetworkConfig.BSC_TESTNET]: '0x0000000000000000000000000000000000000000', // TODO: Add BSC Testnet USDC address
+  [NetworkConfig.LOCAL]: '0x0000000000000000000000000000000000000000',
 };
 
 /**
@@ -598,42 +599,59 @@ export function getUSDCAddress(network: string): string {
  * ERC-8004 v1.0 Contract Addresses by Network
  */
 export const CONTRACT_ADDRESSES = {
-  'ethereum-sepolia': {
+  [NetworkConfig.ETHEREUM_SEPOLIA]: {
+    // ERC - 8004 Registries(deployed by Nethermind)
     identity: '0x8004a6090Cd10A7288092483047B097295Fb8847',
     reputation: '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E',
     validation: '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5',
     usdc: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
+    // ChaosChain Protocol MVP v0.4.3 (deployed Dec 20, 2025)
+    // Features: Per-worker consensus, Multi-agent attribution, DKG-based scoring
+    // NEW: registerFeedbackAuth() for multi-agent reputation publishing
+    chaos_registry: '0xB5Dba66ae57479190A7723518f8cA7ea8c40de53',
+    chaos_core: '0x6660e8EF6baaAf847519dFd693D0033605b825f5',
+    rewards_distributor: '0xA050527d38Fae9467730412d941560c8706F060A',
+    studio_factory: '0xfEf9d59883854F991E8d009b26BDD8F4ed51A19d',
+    // LogicModules
+    finance_logic: '0x2049f335A812b68aC488d4b687C3B701BF845f5b',
   },
-  'base-sepolia': {
+  [NetworkConfig.OPTIMISM_SEPOLIA]: {
+    identity_registry: '0x0000000000000000000000000000000000000000', // Not yet deployed
+    reputation_registry: '0x0000000000000000000000000000000000000000',
+    validation_registry: '0x0000000000000000000000000000000000000000',
+    usdc_token: '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
+    treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
+  },
+  [NetworkConfig.BASE_SEPOLIA]: {
     identity: '0x8004AA63c570c570eBF15376c0dB199918BFe9Fb',
     reputation: '0x8004bd8daB57f14Ed299135749a5CB5c42d341BF',
     validation: '0x8004C269D0A5647E51E121FeB226200ECE932d55',
     usdc: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
   },
-  'linea-sepolia': {
+  [NetworkConfig.LINEA_SEPOLIA]: {
     identity: '0x8004aa7C931bCE1233973a0C6A667f73F66282e7',
     reputation: '0x8004bd8483b99310df121c46ED8858616b2Bba02',
     validation: '0x8004c44d1EFdd699B2A26e781eF7F77c56A9a4EB',
     usdc: '0x0000000000000000000000000000000000000000',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
   },
-  'hedera-testnet': {
+  [NetworkConfig.HEDERA_TESTNET]: {
     identity: '0x4c74ebd72921d537159ed2053f46c12a7d8e5923',
     reputation: '0xc565edcba77e3abeade40bfd6cf6bf583b3293e0',
     validation: '0x18df085d85c586e9241e0cd121ca422f571c2da6',
     usdc: '0x0000000000000000000000000000000000000000',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
   },
-  '0g-testnet': {
+  [NetworkConfig.ZEROG_TESTNET]: {
     identity: '0x80043ed9cf33a3472768dcd53175bb44e03a1e4a',
     reputation: '0x80045d7b72c47bf5ff73737b780cb1a5ba8ee202',
     validation: '0x80041728e0aadf1d1427f9be18d52b7f3afefafb',
     usdc: '0x0000000000000000000000000000000000000000',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
   },
-  'bsc-testnet': {
+  [NetworkConfig.BSC_TESTNET]: {
     identity: '0xabbd26d86435b35d9c45177725084ee6a2812e40',
     reputation: '0xeced1af52a0446275e9e6e4f6f26c99977400a6a',
     validation: '0x7866bd057f09a4940fe2ce43320518c8749a921e',

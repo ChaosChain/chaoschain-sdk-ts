@@ -27,6 +27,7 @@ export class ChaosAgent {
   private reputationContract: ethers.Contract;
   private validationContract: ethers.Contract;
   private signer: ethers.Signer;
+  private _agentId: bigint | null = null;
 
   constructor(addresses: ContractAddresses, signer: ethers.Signer, _provider: ethers.Provider) {
     this.signer = signer;
@@ -84,6 +85,9 @@ export class ChaosAgent {
     if (!event) {
       throw new Error('Registered event not found');
     }
+
+    // Set agent ID in memory and cache
+    await this.setCachedAgentId(event.args.agentId);
 
     return {
       agentId: event.args.agentId,
@@ -165,6 +169,94 @@ export class ChaosAgent {
    */
   async getTotalAgents(): Promise<bigint> {
     return this.identityContract.totalAgents();
+  }
+
+  /**
+   * Get the agent's on-chain ID (ERC-8004) with optional local caching.
+   *
+   * @param useCache - If true, check local cache first (default: true)
+   * @returns Agent ID if registered, null otherwise
+   */
+  async getAgentId(useCache: boolean = true): Promise<bigint | null> {
+    // 1. Check memory first
+    if (this._agentId !== null) return this._agentId;
+
+    // 2. Check chain info for cache lookup
+    const network = await this.signer.provider!.getNetwork();
+    const chainId = Number(network.chainId);
+    const walletAddress = await this.signer.getAddress();
+
+    // 3. Check cache if enabled
+    if (useCache) {
+      const cachedId = this.loadAgentIdFromCache(chainId, walletAddress);
+      if (cachedId !== null) {
+        this._agentId = cachedId;
+        console.log('Agent ID loaded from cache:', cachedId);
+        return cachedId;
+      }
+    }
+
+    // 4. Query on-chain
+    try {
+      const balance: bigint = await this.identityContract.balanceOf(walletAddress);
+      if (balance === 0n) {
+        return null; // No agents owned
+      }
+
+      // 5. Try ERC-721 Enumerable first
+      try {
+        const agentId: bigint = await this.identityContract.tokenOfOwnerByIndex(walletAddress, 0);
+        this._agentId = agentId;
+        this.saveAgentIdTocache(chainId, walletAddress, agentId);
+        return this._agentId;
+      } catch (error) {
+        // tokenOfOwnerByIndex not available, use fallback
+      }
+
+      // 6. Fallback: iterate through recent tokens
+      try {
+        const totalSupply: bigint = await this.identityContract.totalSupply();
+        const total = Number(totalSupply);
+        for (let i = total; i > Math.max(0, total - 100); i--) {
+          try {
+            const owner = await this.identityContract.ownerOf(BigInt(i));
+            if (owner.toLowerCase() === walletAddress.toLowerCase()) {
+              this._agentId = BigInt(i);
+              this.saveAgentIdTocache(chainId, walletAddress, this._agentId);
+              return this._agentId;
+            }
+          } catch {
+            continue; // token might not exist
+          }
+        }
+      } catch {
+        // totalSupply not available
+      }
+    } catch (error) {
+      console.error('Failed to get agent ID:', error);
+    }
+
+    return null;
+  }
+
+  /**
+   * Manually set the agent ID (useful when known from external source).
+   * Sets both in-memory state AND saves to cache.
+   *
+   * @param agentId - The ERC-8004 agent ID to cache
+   */
+  async setCachedAgentId(agentId: bigint): Promise<void> {
+    // Get chain info
+    const network = await this.signer.provider!.getNetwork();
+    const chainId = Number(network.chainId);
+    const walletAddress = await this.signer.getAddress();
+
+    // set in memory
+    this._agentId = agentId;
+
+    // Save to cache
+    this.saveAgentIdTocache(chainId, walletAddress, agentId);
+    console.log('Agent ID set and cached:', agentId);
   }
 
   /**
@@ -580,7 +672,12 @@ export class ChaosAgent {
     return cache[chainId]?.[wallet]?.agentId || null;
   }
 
-  private saveAgentIdTocache(chainId: number, wallet: string, agentId: bigint, domain?: string): void {
+  private saveAgentIdTocache(
+    chainId: number,
+    wallet: string,
+    agentId: bigint,
+    domain?: string
+  ): void {
     const cacheFile = this.getCachedFilePath();
     const cache = fs.existsSync(cacheFile) ? JSON.parse(fs.readFileSync(cacheFile, 'utf-8')) : {};
     cache[String(chainId)] = cache[String(chainId)] ?? {};

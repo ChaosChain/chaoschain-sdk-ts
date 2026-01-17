@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ChaosChainSDK } from '../src/ChaosChainSDK';
 import { NetworkConfig, AgentRole } from '../src/types';
 import { ethers } from 'ethers';

@@ -12,28 +12,18 @@
  */
 
 import { createHash } from 'crypto';
-import { IntegrityProof } from './types';
+import { IntegrityProof, TEEAttestation, VerificationMethod } from './types';
 import { IntegrityVerificationError } from './exceptions';
 
 export interface StorageProvider {
   uploadJson(data: any, filename: string): Promise<string>;
 }
 
-export interface TEEAttestation {
-  job_id: string;
-  provider: string;
-  execution_hash: string;
-  verification_method: string;
-  model?: string;
-  attestation_data: any;
-  proof?: string;
-  metadata?: any;
-  timestamp: string;
-}
+// TEEAttestation is imported from './types' - no duplicate definition needed
 
 export interface ComputeProvider {
   submit(task: any): Promise<string>;
-  status(jobId: string): Promise<{ state: string; [key: string]: any }>;
+  status(jobId: string): Promise<{ state: string;[key: string]: any }>;
   result(jobId: string): Promise<{
     success: boolean;
     execution_hash: string;
@@ -233,14 +223,13 @@ export class ProcessIntegrity {
             console.log(`   Execution Hash: ${computeResult.execution_hash}`);
             console.log(`   Verification: ${computeResult.verification_method.value}`);
 
-            // Match actual 0G Compute response structure
             return {
-              job_id: jobId,
+              jobId: jobId,
               provider: '0g-compute',
-              execution_hash: computeResult.execution_hash, // TEE execution ID
-              verification_method: computeResult.verification_method.value,
+              executionHash: computeResult.execution_hash, // TEE execution ID
+              verificationMethod: computeResult.verification_method.value as VerificationMethod,
               model: taskData.model,
-              attestation_data: attestationData, // Full attestation proof
+              attestationData: attestationData, // Full attestation proof
               proof: computeResult.proof?.toString('hex'),
               metadata: computeResult.metadata,
               timestamp: new Date().toISOString(),
@@ -292,21 +281,21 @@ export class ProcessIntegrity {
 
     const executionHash = createHash('sha256').update(JSON.stringify(executionData)).digest('hex');
 
-    // Build proof with optional TEE data
+    // Build proof with optional TEE data (camelCase to match types.ts)
     const proof: IntegrityProof = {
-      proof_id: proofId,
-      function_name: functionName,
-      code_hash: codeHash,
-      execution_hash: executionHash,
+      proofId: proofId,
+      functionName: functionName,
+      codeHash: codeHash,
+      executionHash: executionHash,
       timestamp: executionTime,
-      agent_name: this.agentName,
-      verification_status: 'verified',
-      ipfs_cid: undefined,
+      agentName: this.agentName,
+      verificationStatus: 'verified',
+      ipfsCid: undefined,
       // TEE fields (if available)
-      tee_attestation: teeAttestation || undefined,
-      tee_provider: teeAttestation?.provider,
-      tee_job_id: teeAttestation?.job_id,
-      tee_execution_hash: teeAttestation?.execution_hash,
+      teeAttestation: teeAttestation || undefined,
+      teeProvider: teeAttestation?.provider,
+      teeJobId: teeAttestation?.jobId,
+      teeExecutionHash: teeAttestation?.executionHash,
     };
 
     const verificationLevel = teeAttestation ? 'local + TEE' : 'local';
@@ -322,35 +311,36 @@ export class ProcessIntegrity {
     if (!this.storageManager) return;
 
     try {
+      // JSON output uses snake_case for Python SDK compatibility
       const proofData = {
         type: 'chaoschain_process_integrity_proof_v2', // v2 includes TEE
         proof: {
-          proof_id: proof.proof_id,
-          function_name: proof.function_name,
-          code_hash: proof.code_hash,
-          execution_hash: proof.execution_hash,
+          proof_id: proof.proofId,
+          function_name: proof.functionName,
+          code_hash: proof.codeHash,
+          execution_hash: proof.executionHash,
           timestamp: proof.timestamp.toISOString(),
-          agent_name: proof.agent_name,
-          verification_status: proof.verification_status,
+          agent_name: proof.agentName,
+          verification_status: proof.verificationStatus,
           // TEE attestation (if available)
-          tee_attestation: proof.tee_attestation,
-          tee_provider: proof.tee_provider,
-          tee_job_id: proof.tee_job_id,
-          tee_execution_hash: proof.tee_execution_hash,
+          tee_attestation: proof.teeAttestation,
+          tee_provider: proof.teeProvider,
+          tee_job_id: proof.teeJobId,
+          tee_execution_hash: proof.teeExecutionHash,
         },
         verification_layers: {
           local_code_hash: true,
-          tee_attestation: !!proof.tee_attestation,
+          tee_attestation: !!proof.teeAttestation,
         },
         timestamp: new Date().toISOString(),
         agent_name: this.agentName,
       };
 
-      const filename = `process_integrity_proof_${proof.proof_id}.json`;
+      const filename = `process_integrity_proof_${proof.proofId}.json`;
       const cid = await this.storageManager.uploadJson(proofData, filename);
 
       if (cid) {
-        proof.ipfs_cid = cid;
+        proof.ipfsCid = cid;
         console.log(`📁 Process Integrity Proof stored on IPFS: ${cid}`);
       }
     } catch (e) {

@@ -259,15 +259,25 @@ export interface ComputeProvider {
 // ============================================================================
 
 /**
+ * Verification method
+ */
+export enum VerificationMethod {
+  TEE_ML = "tee-ml",  // Trusted Execution Environment
+  ZK_ML = "zk-ml",    // Zero-Knowledge Machine Learning
+  OP_ML = "op-ml",    // Optimistic Machine Learning
+  NONE = "none"       // No verification
+}
+
+/**
  * TEE attestation data
  */
 export interface TEEAttestation {
-  job_id: string;
+  jobId: string;
   provider: string;
-  execution_hash: string;
-  verification_method: string;
+  executionHash: string;
+  verificationMethod: VerificationMethod;
   model?: string;
-  attestation_data: unknown;
+  attestationData: unknown;
   proof?: string;
   metadata?: unknown;
   timestamp: string;
@@ -277,18 +287,19 @@ export interface TEEAttestation {
  * Integrity proof structure
  */
 export interface IntegrityProof {
-  proof_id: string;
-  function_name: string;
-  code_hash: string;
-  execution_hash: string;
+  proofId: string;
+  functionName: string;
+  codeHash: string;
+  executionHash: string;
   timestamp: Date;
-  agent_name: string;
-  verification_status: string;
-  ipfs_cid?: string;
-  tee_attestation?: TEEAttestation;
-  tee_provider?: string;
-  tee_job_id?: string;
-  tee_execution_hash?: string;
+  agentName: string;
+  verificationStatus: string;
+  ipfsCid?: string;
+  // TEE (Trusted Execution Environment) attestation fields
+  teeAttestation?: TEEAttestation; // Full TEE attestation data
+  teeProvider?: string; // e.g., "0g-compute", "phala"
+  teeJobId?: string; //  TEE provider's job/task ID
+  teeExecutionHash?: string; // TEE-specific execution hash
 }
 
 // ============================================================================
