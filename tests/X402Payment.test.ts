@@ -164,7 +164,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
       expect(requirements.maxAmountRequired).toBeDefined();
       expect(requirements.payTo).toBe(wallet.address);
       expect(requirements.asset).toBeDefined(); // USDC contract address
-      expect(requirements.maxTimeoutSeconds).toBe(60);
+      expect(requirements.maxTimeoutSeconds).toBe(300); // 5 minutes, aligned with Python SDK
       expect(requirements.mimeType).toBe('application/json');
     });
 

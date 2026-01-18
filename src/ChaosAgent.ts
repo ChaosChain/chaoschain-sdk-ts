@@ -350,7 +350,7 @@ export class ChaosAgent {
     const tag2 = feedbackData?.tag2 || ethers.ZeroHash; // bytes32
 
     // Calculate feedback hash
-    const feedbackContent = typeof feedbackData?.content === 'string'
+    const feedbackContent = typeof feedbackData?.content === 'string' // we could add a type guard here instead of using typeof
       ? feedbackData.content
       : feedbackUri;
     const feedbackHash = ethers.keccak256(ethers.toUtf8Bytes(feedbackContent));
