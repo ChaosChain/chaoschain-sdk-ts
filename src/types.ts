@@ -247,7 +247,7 @@ export interface ComputeProvider {
  * TEE attestation data
  */
 export interface TEEAttestation {
-  provider: 'phala' | 'sgx' | 'nitro' | 'zerog';
+  provider: 'phala' | 'sgx' | 'nitro' | 'zerog' | '0g-compute';
   attestationData: string;
   publicKey: string;
   timestamp: number;
@@ -292,10 +292,12 @@ export interface ChaosChainSDKConfig {
   computeProvider?: ComputeProvider;
   walletFile?: string;
   // x402 Facilitator Configuration (EIP-3009)
-  facilitatorUrl?: string;     // e.g., 'https://facilitator.chaoscha.in'
-  facilitatorApiKey?: string;  // Optional API key for managed facilitator
+  facilitatorUrl?: string; // e.g., 'https://facilitator.chaoscha.in'
+  facilitatorApiKey?: string; // Optional API key for managed facilitator
   facilitatorMode?: 'managed' | 'decentralized';
-  agentId?: string;            // ERC-8004 tokenId (e.g., '8004#123')
+  agentId?: string; // ERC-8004 tokenId (e.g., '8004#123')
+  // Gateway Configuration
+  gatewayUrl?: string; // ChaosChain Gateway URL for workflow execution
 }
 
 /**
@@ -382,3 +384,210 @@ export interface ErrorResponse {
   details?: unknown;
 }
 
+// ============================================================================
+// ChaosChain Protocol Types
+// ============================================================================
+
+/**
+ * Work submission parameters
+ */
+export interface WorkSubmissionParams {
+  studioAddress: string;
+  dataHash: string; // bytes32 as hex string
+  threadRoot: string; // bytes32 as hex string
+  evidenceRoot: string; // bytes32 as hex string
+}
+
+/**
+ * Multi-agent work submission parameters
+ */
+export interface MultiAgentWorkSubmissionParams {
+  studioAddress: string;
+  dataHash: string; // bytes32 as hex string
+  threadRoot: string; // bytes32 as hex string
+  evidenceRoot: string; // bytes32 as hex string
+  participants: string[]; // Array of participant addresses
+  contributionWeights: number[] | Record<string, number>; // Basis points (0-10000) or Dict with float weights (0-1)
+  evidenceCID?: string; // IPFS/Arweave CID (optional)
+}
+
+/**
+ * Score vector submission parameters
+ */
+export interface ScoreVectorParams {
+  studioAddress: string;
+  dataHash: string; // bytes32 as hex string
+  scoreVector: number[]; // Multi-dimensional scores [0-100 each]
+}
+
+/**
+ * Per-worker score vector submission parameters
+ */
+export interface PerWorkerScoreVectorParams {
+  studioAddress: string;
+  dataHash: string; // bytes32 as hex string
+  workerAddress: string;
+  scoreVector: number[]; // Multi-dimensional scores [0-100 each]
+}
+
+/**
+ * Epoch closure parameters
+ */
+export interface CloseEpochParams {
+  studioAddress: string;
+  epoch: number;
+  rewardsDistributorAddress?: string; // Optional, defaults to registry
+}
+
+/**
+ * Consensus result
+ */
+export interface ConsensusResult {
+  dataHash: string;
+  consensusScores: number[];
+  totalStake: bigint;
+  validatorCount: number;
+  timestamp: number;
+  finalized: boolean;
+}
+
+// ============================================================================
+// Gateway Types
+// ============================================================================
+
+/**
+ * Workflow types
+ */
+export enum WorkflowType {
+  WORK_SUBMISSION = 'WorkSubmission',
+  SCORE_SUBMISSION = 'ScoreSubmission',
+  CLOSE_EPOCH = 'CloseEpoch',
+}
+
+/**
+ * Workflow states
+ */
+export enum WorkflowState {
+  CREATED = 'CREATED',
+  RUNNING = 'RUNNING',
+  STALLED = 'STALLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+}
+
+/**
+ * Workflow progress
+ */
+export interface WorkflowProgress {
+  arweaveTxId?: string;
+  arweaveConfirmed?: boolean;
+  onchainTxHash?: string;
+  onchainConfirmed?: boolean;
+  onchainBlock?: number;
+  commitTxHash?: string;
+  revealTxHash?: string;
+}
+
+/**
+ * Workflow error
+ */
+export interface WorkflowError {
+  step: string;
+  message: string;
+  code?: string;
+}
+
+/**
+ * Workflow status
+ */
+export interface WorkflowStatus {
+  id: string;
+  type: WorkflowType;
+  state: WorkflowState;
+  step: string;
+  createdAt: number;
+  updatedAt: number;
+  progress: WorkflowProgress;
+  error?: WorkflowError;
+}
+
+// ============================================================================
+// Verifier Agent Types
+// ============================================================================
+
+/**
+ * Audit result
+ */
+export interface AuditResult {
+  auditPassed: boolean;
+  evidencePackageCid: string;
+  dataHash: string;
+  scores: Record<string, number[]>; // {agentId: [scores...]}
+  contributionWeights: Record<string, number>; // {agentId: weight}
+  dkg?: any; // DKG instance
+  auditReport: Record<string, any>;
+  errors: string[];
+}
+
+// ============================================================================
+// Studio Manager Types
+// ============================================================================
+
+/**
+ * Task definition
+ */
+export interface Task {
+  taskId: string;
+  studioAddress: string;
+  requirements: TaskRequirements;
+  status: 'broadcasting' | 'assigned' | 'in_progress' | 'completed' | 'failed';
+  createdAt: Date;
+  assignedTo?: string;
+  assignedAt?: Date;
+}
+
+/**
+ * Task requirements
+ */
+export interface TaskRequirements {
+  description: string;
+  budget: number; // USDC amount
+  deadline: Date;
+  capabilities?: string[];
+  minReputation?: number;
+}
+
+/**
+ * Worker bid
+ */
+export interface WorkerBid {
+  bidId: string;
+  taskId: string;
+  workerAddress: string;
+  workerAgentId: bigint;
+  proposedPrice: number;
+  estimatedTimeHours: number;
+  capabilities: string[];
+  reputationScore: number;
+  message: string;
+  submittedAt: Date;
+}
+
+// ============================================================================
+// Mandate Types
+// ============================================================================
+
+/**
+ * Mandate structure (W3C compliant)
+ */
+export interface Mandate {
+  id: string;
+  userDescription: string;
+  merchants?: string[];
+  skus?: string[];
+  requiresRefundability: boolean;
+  expiry: number; // Unix timestamp
+  serverSignature?: string;
+  clientSignature?: string;
+  createdAt: number;
+}

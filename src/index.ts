@@ -1,8 +1,8 @@
 /**
  * ChaosChain SDK - TypeScript Entry Point
- * 
+ *
  * Complete TypeScript implementation with feature parity to Python SDK
- * 
+ *
  * @packageDocumentation
  */
 
@@ -29,7 +29,7 @@ export type {
   TransferAuthorizationParams,
   X402FacilitatorConfig,
   SettleRequest,
-  SettleResponse
+  SettleResponse,
 } from './X402PaymentManager';
 export { PaymentManager } from './PaymentManager';
 export { X402Server } from './X402Server';
@@ -42,6 +42,20 @@ export { A2AX402Extension } from './A2AX402Extension';
 // export { ProcessIntegrity } from './ProcessIntegrity'; // TODO: Fix export
 
 // ============================================================================
+// Protocol Integrations
+// ============================================================================
+export { VerifierAgent } from './VerifierAgent';
+export { StudioManager } from './StudioManager';
+export { GatewayClient, WorkflowType, WorkflowState } from './GatewayClient';
+export { XMTPManager } from './XMTPClient';
+export { MandateManager } from './MandateManager';
+
+// ============================================================================
+// DKG (Decentralized Knowledge Graph)
+// ============================================================================
+export { DKG, DKGNode } from './dkg';
+
+// ============================================================================
 // Storage Backends
 // ============================================================================
 export {
@@ -51,7 +65,7 @@ export {
   ZeroGStorage,
   AutoStorageManager,
   type StorageBackend,
-  type StorageResult
+  type StorageResult,
 } from './StorageBackends';
 
 // ============================================================================
@@ -85,50 +99,77 @@ export type {
   // Core Config
   ChaosChainSDKConfig,
   WalletConfig,
-  
+
   // Agent Types
   AgentMetadata,
   AgentRegistration,
-  
+
   // Feedback & Reputation
   FeedbackParams,
   FeedbackRecord,
-  
+
   // Validation
   ValidationRequestParams,
   ValidationRequest,
-  
+
   // Payments
   X402PaymentParams,
   X402Payment,
   // X402PaymentReceipt, // Use PaymentReceipt instead
-  
+
   // Storage
   StorageProvider,
   UploadOptions,
   UploadResult,
-  
+
   // Compute
   ComputeProvider,
-  
+
   // Network
   ContractAddresses,
-  
+
   // Process Integrity
   IntegrityProof,
   TEEAttestation,
-  
+
   // Transaction
   TransactionResult,
+
+  // Protocol Types
+  WorkSubmissionParams,
+  MultiAgentWorkSubmissionParams,
+  ScoreVectorParams,
+  PerWorkerScoreVectorParams,
+  CloseEpochParams,
+  ConsensusResult,
+
+  // DKG Types
+  // DKG and DKGNode are exported as classes
+
+  // Gateway Types
+  WorkflowStatus,
+  WorkflowProgress,
+  WorkflowError,
+
+  // Studio Manager Types
+  Task,
+  TaskRequirements,
+  WorkerBid,
+
+  // Verifier Agent Types
+  AuditResult,
+
+  // Mandate Types
+  Mandate,
 } from './types';
 
 // ============================================================================
 // Enums
 // ============================================================================
-export { 
+export {
   NetworkConfig,
   AgentRole,
-  ValidationStatus
+  ValidationStatus,
   // PaymentMethod // Not defined in types.ts yet
 } from './types';
 
@@ -138,22 +179,22 @@ export enum PaymentMethod {
   GOOGLE_PAY = 'https://google.com/pay',
   APPLE_PAY = 'https://apple.com/apple-pay',
   PAYPAL = 'https://paypal.com',
-  A2A_X402 = 'https://a2a.org/x402'
+  A2A_X402 = 'https://a2a.org/x402',
 }
 
 // ============================================================================
 // Utilities
 // ============================================================================
-export { 
-  getNetworkInfo, 
-  getContractAddresses
+export {
+  getNetworkInfo,
+  getContractAddresses,
   // SUPPORTED_NETWORKS // Not exported from networks.ts
 } from './utils/networks';
 
 export {
   IDENTITY_REGISTRY_ABI,
   REPUTATION_REGISTRY_ABI,
-  VALIDATION_REGISTRY_ABI
+  VALIDATION_REGISTRY_ABI,
   // getIdentityRegistryABI, // Now exported as const
   // getReputationRegistryABI, // Now exported as const
   // getValidationRegistryABI // Now exported as const
@@ -178,11 +219,11 @@ export default SDK;
 
 /**
  * Initialize ChaosChain SDK with minimal configuration
- * 
+ *
  * @example
  * ```typescript
  * import { initChaosChainSDK, ChaosChainSDK } from '@chaoschain/sdk';
- * 
+ *
  * const sdk = initChaosChainSDK({
  *   agentName: 'MyAgent',
  *   agentDomain: 'myagent.example.com',
@@ -190,7 +231,7 @@ export default SDK;
  *   network: 'base-sepolia',
  *   privateKey: process.env.PRIVATE_KEY
  * });
- * 
+ *
  * const { agentId } = await sdk.registerIdentity();
  * console.log(`Agent registered with ID: ${agentId}`);
  * ```

@@ -25,7 +25,7 @@ export interface X402PaywallConfig {
 
 /**
  * X402 Paywall Server - HTTP 402 payment-protected API
- * 
+ *
  * Features:
  * - HTTP 402 Payment Required responses
  * - Automatic payment verification
@@ -44,7 +44,7 @@ export class X402Server {
     this.config = {
       port: config.port,
       host: config.host || '0.0.0.0',
-      defaultCurrency: config.defaultCurrency || 'USDC'
+      defaultCurrency: config.defaultCurrency || 'USDC',
     };
 
     console.log(`🔒 X402 Paywall Server initialized on port ${this.config.port}`);
@@ -62,11 +62,13 @@ export class X402Server {
         amount,
         currency: currency || this.config.defaultCurrency,
         description,
-        handler
+        handler,
       };
 
       this.endpoints.set(path, endpointConfig);
-      console.log(`💰 Registered paywall endpoint: ${path} (${amount} ${currency || this.config.defaultCurrency})`);
+      console.log(
+        `💰 Registered paywall endpoint: ${path} (${amount} ${currency || this.config.defaultCurrency})`
+      );
 
       return handler;
     };
@@ -90,7 +92,9 @@ export class X402Server {
     });
 
     this.server.listen(this.config.port, this.config.host, () => {
-      console.log(`🚀 X402 Paywall Server running at http://${this.config.host}:${this.config.port}`);
+      console.log(
+        `🚀 X402 Paywall Server running at http://${this.config.host}:${this.config.port}`
+      );
       console.log(`📋 Registered endpoints: ${this.endpoints.size}`);
       this.endpoints.forEach((config, path) => {
         console.log(`   - ${path}: ${config.amount} ${config.currency} - ${config.description}`);
@@ -192,11 +196,11 @@ export class X402Server {
     const response = {
       x402Version: 1,
       accepts: [paymentRequirements], // Array of acceptable payment requirements
-      error: 'Payment Required'
+      error: 'Payment Required',
     };
 
     res.writeHead(402, {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
 
     res.end(JSON.stringify(response));
@@ -207,7 +211,10 @@ export class X402Server {
    * Spec: X-PAYMENT contains base64 encoded JSON with:
    * { x402Version: number, scheme: string, network: string, payload: <scheme-specific> }
    */
-  private async verifyPayment(xPaymentHeader: string, endpointConfig: X402EndpointConfig): Promise<boolean> {
+  private async verifyPayment(
+    xPaymentHeader: string,
+    endpointConfig: X402EndpointConfig
+  ): Promise<boolean> {
     try {
       // Decode base64 X-PAYMENT header
       const paymentPayloadJson = Buffer.from(xPaymentHeader, 'base64').toString('utf-8');
@@ -256,7 +263,7 @@ export class X402Server {
         chain_id: 84532,
         timestamp: new Date(),
         status: 'confirmed',
-        confirmations: 1
+        confirmations: 1,
       };
 
       const isValid = await this.paymentManager.verifyPayment(mockProof);
@@ -287,10 +294,10 @@ export class X402Server {
         path,
         amount: config.amount,
         currency: config.currency,
-        description: config.description
+        description: config.description,
       })),
       payments_cached: this.paymentCache.size,
-      default_currency: this.config.defaultCurrency
+      default_currency: this.config.defaultCurrency,
     };
   }
 
@@ -302,4 +309,3 @@ export class X402Server {
     console.log('🗑️  Payment cache cleared');
   }
 }
-

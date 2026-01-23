@@ -17,4 +17,3 @@ export class LocalComputeProvider implements ComputeProvider {
     return [];
   }
 }
-

@@ -153,4 +153,3 @@ export class PinataStorage implements StorageProvider {
     }
   }
 }
-

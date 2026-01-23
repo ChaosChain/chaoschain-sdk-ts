@@ -18,14 +18,14 @@ export class WalletManager {
     this.provider = provider;
 
     if (provider) {
-      this.wallet = this.wallet.connect(provider);
+      this.wallet = this.wallet.connect(provider) as ethers.Wallet | ethers.HDNodeWallet;
     }
   }
 
   /**
    * Initialize wallet from various sources
    */
-  private initializeWallet(config: WalletConfig): ethers.Wallet {
+  private initializeWallet(config: WalletConfig): ethers.Wallet | ethers.HDNodeWallet {
     if (config.privateKey) {
       return new ethers.Wallet(config.privateKey);
     }
@@ -35,19 +35,71 @@ export class WalletManager {
     }
 
     if (config.walletFile) {
-      return this.loadFromFile(config.walletFile);
+      try {
+        const walletData = fs.readFileSync(config.walletFile, 'utf8');
+        const data = JSON.parse(walletData);
+
+        // Check if encrypted (has crypto field)
+        if (data.crypto || data.Crypto) {
+          throw new Error(
+            'Encrypted wallets require password. Use WalletManager.loadFromFile() with password.'
+          );
+        }
+
+        if (!data.privateKey) {
+          throw new Error('Invalid wallet file: missing privateKey');
+        }
+
+        return new ethers.Wallet(data.privateKey);
+      } catch (error) {
+        throw new Error(`Failed to load wallet from file: ${(error as Error).message}`);
+      }
     }
 
     // Generate new random wallet
-    return ethers.Wallet.createRandom();
+    return ethers.Wallet.createRandom() as ethers.Wallet | ethers.HDNodeWallet;
   }
 
   /**
-   * Load wallet from encrypted file
+   * Static method to load wallet from encrypted file (with password)
    */
-  private loadFromFile(filePath: string): ethers.Wallet {
+  static async loadFromFile(filePath: string, password: string): Promise<ethers.Wallet | ethers.HDNodeWallet> {
     try {
       const walletData = fs.readFileSync(filePath, 'utf8');
+
+      // Try to parse as JSON first
+      let data: any;
+      try {
+        data = JSON.parse(walletData);
+      } catch {
+        // If not JSON, might be encrypted format - try decrypting directly
+        return await ethers.Wallet.fromEncryptedJson(walletData, password) as ethers.Wallet | ethers.HDNodeWallet;
+      }
+
+      // Check if encrypted format (has Crypto field)
+      if (data.Crypto || data.crypto) {
+        return await ethers.Wallet.fromEncryptedJson(walletData, password) as ethers.Wallet | ethers.HDNodeWallet;
+      }
+
+      // Plain JSON format - shouldn't need password
+      if (!data.privateKey) {
+        throw new Error('Invalid wallet file: missing privateKey');
+      }
+
+      return new ethers.Wallet(data.privateKey);
+    } catch (error) {
+      throw new Error(`Failed to load wallet from file: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Load wallet from encrypted file (private instance method)
+   * @deprecated Use static WalletManager.loadFromFile() instead
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private loadFromFile(_filePath: string): ethers.Wallet {
+    try {
+      const walletData = fs.readFileSync(_filePath, 'utf8');
       const data = JSON.parse(walletData);
 
       if (data.encrypted) {
@@ -78,7 +130,7 @@ export class WalletManager {
       const data = {
         address: this.wallet.address,
         privateKey: this.wallet.privateKey,
-        mnemonic: this.wallet.mnemonic?.phrase,
+        mnemonic: 'mnemonic' in this.wallet && this.wallet.mnemonic ? this.wallet.mnemonic.phrase : undefined,
         encrypted: false,
       };
       fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
@@ -88,7 +140,7 @@ export class WalletManager {
   /**
    * Get wallet instance
    */
-  getWallet(): ethers.Wallet {
+  getWallet(): ethers.Wallet | ethers.HDNodeWallet {
     return this.wallet;
   }
 
@@ -110,7 +162,7 @@ export class WalletManager {
    * Get mnemonic phrase (if available)
    */
   getMnemonic(): string | undefined {
-    return this.wallet.mnemonic?.phrase;
+    return 'mnemonic' in this.wallet && this.wallet.mnemonic ? this.wallet.mnemonic.phrase : undefined;
   }
 
   /**
@@ -156,7 +208,7 @@ export class WalletManager {
    */
   connect(provider: ethers.Provider): void {
     this.provider = provider;
-    this.wallet = this.wallet.connect(provider);
+    this.wallet = this.wallet.connect(provider) as ethers.Wallet | ethers.HDNodeWallet;
   }
 
   /**
@@ -185,7 +237,8 @@ export class WalletManager {
    * Generate new mnemonic
    */
   static generateMnemonic(): string {
-    return ethers.Wallet.createRandom().mnemonic?.phrase || '';
+    const wallet = ethers.Wallet.createRandom();
+    return 'mnemonic' in wallet && wallet.mnemonic ? wallet.mnemonic.phrase : '';
   }
 
   /**
@@ -220,4 +273,3 @@ export class WalletManager {
     return new WalletManager({ privateKey: hdNode.privateKey });
   }
 }
-

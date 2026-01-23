@@ -7,7 +7,7 @@
 
 import { ethers } from 'ethers';
 import axios from 'axios';
-// import { PaymentError } from './exceptions';
+import { PaymentError } from './exceptions';
 import { NetworkConfig } from './types';
 
 export enum PaymentMethod {
@@ -15,7 +15,7 @@ export enum PaymentMethod {
   GOOGLE_PAY = 'https://google.com/pay',
   APPLE_PAY = 'https://apple.com/apple-pay',
   PAYPAL = 'https://paypal.com',
-  A2A_X402 = 'https://a2a.org/x402'
+  A2A_X402 = 'https://a2a.org/x402',
 }
 
 export interface TraditionalPaymentRequest {
@@ -47,7 +47,7 @@ export interface PaymentMethodCredentials {
 
 /**
  * Payment Manager - handles all payment types
- * 
+ *
  * Supports:
  * - Basic card payments (Visa, Mastercard via Stripe)
  * - Google Pay
@@ -60,7 +60,7 @@ export class PaymentManager {
   private network: NetworkConfig;
   private wallet: ethers.Wallet;
   private credentials: PaymentMethodCredentials;
-  private stripeAxiosInstance?: axios.AxiosInstance;
+  private stripeAxiosInstance?: ReturnType<typeof axios.create>;
   private paypalAccessToken?: string;
 
   constructor(
@@ -80,8 +80,8 @@ export class PaymentManager {
         baseURL: 'https://api.stripe.com/v1',
         headers: {
           Authorization: `Bearer ${credentials.stripe_secret_key}`,
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
       console.log('✅ Stripe integration enabled');
     }
@@ -109,8 +109,8 @@ export class PaymentManager {
         {
           headers: {
             Authorization: `Basic ${auth}`,
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
         }
       );
 
@@ -128,7 +128,7 @@ export class PaymentManager {
     paymentMethod: PaymentMethod,
     amount: number,
     currency: string,
-    paymentData_unused: Record<string, any>
+    paymentData: Record<string, any>
   ): TraditionalPaymentResult {
     console.log(`💳 Processing ${paymentMethod} payment: $${amount} ${currency}`);
 
@@ -157,7 +157,11 @@ export class PaymentManager {
   /**
    * Process Basic Card payment (Visa, Mastercard, Amex, etc.) via Stripe
    */
-  private processBasicCard(amount: number, currency: string, paymentData_unused: Record<string, any>): TraditionalPaymentResult {
+  private processBasicCard(
+    amount: number,
+    currency: string,
+    paymentData: Record<string, any>
+  ): TraditionalPaymentResult {
     console.log('💳 Processing Basic Card via Stripe...');
 
     // Check if Stripe is configured
@@ -185,7 +189,11 @@ export class PaymentManager {
   /**
    * Process Google Pay payment
    */
-  private processGooglePay(amount: number, currency: string, paymentData_unused: Record<string, any>): TraditionalPaymentResult {
+  private processGooglePay(
+    amount: number,
+    currency: string,
+    paymentData: Record<string, any>
+  ): TraditionalPaymentResult {
     console.log('🅶  Processing Google Pay...');
 
     // Check if Google Pay is configured
@@ -205,7 +213,11 @@ export class PaymentManager {
   /**
    * Process Apple Pay payment
    */
-  private processApplePay(amount: number, currency: string, paymentData_unused: Record<string, any>): TraditionalPaymentResult {
+  private processApplePay(
+    amount: number,
+    currency: string,
+    paymentData: Record<string, any>
+  ): TraditionalPaymentResult {
     console.log('🍎 Processing Apple Pay...');
 
     // Check if Apple Pay is configured
@@ -225,7 +237,11 @@ export class PaymentManager {
   /**
    * Process PayPal payment
    */
-  private processPayPal(amount: number, currency: string, paymentData_unused: Record<string, any>): TraditionalPaymentResult {
+  private processPayPal(
+    amount: number,
+    currency: string,
+    paymentData: Record<string, any>
+  ): TraditionalPaymentResult {
     console.log('💙 Processing PayPal...');
 
     // Check if PayPal is configured
@@ -262,7 +278,11 @@ export class PaymentManager {
   /**
    * Process A2A-x402 crypto payment
    */
-  private processA2AX402(amount: number, currency: string, paymentData_unused: Record<string, any>): TraditionalPaymentResult {
+  private processA2AX402(
+    amount: number,
+    currency: string,
+    paymentData: Record<string, any>
+  ): TraditionalPaymentResult {
     console.log('🔗 Processing A2A-x402 crypto payment...');
 
     // Crypto payments are handled by X402PaymentManager
@@ -271,7 +291,7 @@ export class PaymentManager {
 
     return {
       payment_id: paymentId,
-      transaction_id: paymentData.transaction_hash || `crypto_tx_${paymentId}`,
+      transaction_id: paymentData?.transaction_hash || `crypto_tx_${paymentId}`,
       status: 'pending_crypto_confirmation',
       amount,
       currency,
@@ -280,8 +300,8 @@ export class PaymentManager {
       processor_response: {
         network: this.network,
         settlement_type: 'crypto',
-        requires_blockchain_confirmation: true
-      }
+        requires_blockchain_confirmation: true,
+      },
     };
   }
 
@@ -310,8 +330,8 @@ export class PaymentManager {
         simulation: true,
         authorization_code: `AUTH_${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
         network: method === PaymentMethod.BASIC_CARD ? 'visa' : method,
-        last4: method === PaymentMethod.BASIC_CARD ? '4242' : undefined
-      }
+        last4: method === PaymentMethod.BASIC_CARD ? '4242' : undefined,
+      },
     };
   }
 
@@ -324,7 +344,7 @@ export class PaymentManager {
       [PaymentMethod.GOOGLE_PAY]: !!this.credentials.google_pay_merchant_id,
       [PaymentMethod.APPLE_PAY]: !!this.credentials.apple_pay_merchant_id,
       [PaymentMethod.PAYPAL]: !!this.paypalAccessToken,
-      [PaymentMethod.A2A_X402]: true // Always available via wallet
+      [PaymentMethod.A2A_X402]: true, // Always available via wallet
     };
   }
 
@@ -388,7 +408,7 @@ export class PaymentManager {
       service_description: serviceDescription,
       network: this.network,
       protocol_fee: amount * 0.025, // 2.5% ChaosChain fee
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -406,7 +426,7 @@ export class PaymentManager {
       timestamp: new Date(),
       network: this.network,
       from_address: this.wallet.address,
-      to_address: paymentRequest.to_agent
+      to_address: paymentRequest.to_agent,
     };
   }
 
@@ -424,9 +444,8 @@ export class PaymentManager {
         traditional_payments: true,
         crypto_payments: true,
         multi_currency: true,
-        instant_settlement: true
-      }
+        instant_settlement: true,
+      },
     };
   }
 }
-

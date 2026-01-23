@@ -70,7 +70,7 @@ export interface GoogleAP2IntegrationResult {
 
 /**
  * Production Google AP2 integration for ChaosChain SDK
- * 
+ *
  * This integrates Google's official AP2 library for real intent verification
  * and mandate management with production-grade security.
  */
@@ -126,12 +126,12 @@ export class GoogleAP2Integration {
       modulusLength: 2048,
       publicKeyEncoding: {
         type: 'spki',
-        format: 'pem'
+        format: 'pem',
       },
       privateKeyEncoding: {
         type: 'pkcs8',
-        format: 'pem'
-      }
+        format: 'pem',
+      },
     });
 
     // Save keys to disk
@@ -145,7 +145,7 @@ export class GoogleAP2Integration {
 
     return {
       privateKey: crypto.createPrivateKey(privateKey as string),
-      publicKey: publicKey as string
+      publicKey: publicKey as string,
     };
   }
 
@@ -170,7 +170,7 @@ export class GoogleAP2Integration {
         merchants,
         skus,
         requires_refundability: requiresRefundability,
-        intent_expiry: expiryTime.toISOString()
+        intent_expiry: expiryTime.toISOString(),
       };
 
       console.log(`📝 Created Google AP2 IntentMandate`);
@@ -179,13 +179,13 @@ export class GoogleAP2Integration {
 
       return {
         intent_mandate: intentMandate,
-        success: true
+        success: true,
       };
     } catch (e) {
       console.error(`❌ Failed to create IntentMandate: ${e}`);
       return {
         success: false,
-        error: String(e)
+        error: String(e),
       };
     }
   }
@@ -210,8 +210,8 @@ export class GoogleAP2Integration {
         label: item.name,
         amount: {
           currency,
-          value: item.price
-        }
+          value: item.price,
+        },
       }));
 
       // Create total PaymentItem
@@ -219,24 +219,24 @@ export class GoogleAP2Integration {
         label: 'Total',
         amount: {
           currency,
-          value: totalAmount
-        }
+          value: totalAmount,
+        },
       };
 
       // Create PaymentMethodData (supporting multiple methods)
       const methodData: PaymentMethodData[] = [
         {
           supported_methods: 'basic-card',
-          data: { supportedNetworks: ['visa', 'mastercard'] }
+          data: { supportedNetworks: ['visa', 'mastercard'] },
         },
         {
           supported_methods: 'google-pay',
-          data: { environment: 'TEST' }
+          data: { environment: 'TEST' },
         },
         {
           supported_methods: 'crypto',
-          data: { supportedCurrencies: ['USDC', 'ETH'] }
-        }
+          data: { supportedCurrencies: ['USDC', 'ETH'] },
+        },
       ];
 
       // Create PaymentRequest
@@ -245,8 +245,8 @@ export class GoogleAP2Integration {
         details: {
           id: `payment_${cartId}`,
           display_items: paymentItems,
-          total: totalItem
-        }
+          total: totalItem,
+        },
       };
 
       // Create CartContents
@@ -255,7 +255,7 @@ export class GoogleAP2Integration {
         user_cart_confirmation_required: true,
         payment_request: paymentRequest,
         cart_expiry: expiryTime.toISOString(),
-        merchant_name: merchantName || this.agentName
+        merchant_name: merchantName || this.agentName,
       };
 
       // Create JWT for merchant authorization
@@ -264,7 +264,7 @@ export class GoogleAP2Integration {
       // Create CartMandate
       const cartMandate: CartMandate = {
         contents: cartContents,
-        merchant_authorization: jwtToken
+        merchant_authorization: jwtToken,
       };
 
       console.log(`🛒 Created Google AP2 CartMandate with JWT`);
@@ -275,13 +275,13 @@ export class GoogleAP2Integration {
       return {
         cart_mandate: cartMandate,
         jwt_token: jwtToken,
-        success: true
+        success: true,
       };
     } catch (e) {
       console.error(`❌ Failed to create CartMandate: ${e}`);
       return {
         success: false,
-        error: String(e)
+        error: String(e),
       };
     }
   }
@@ -304,14 +304,14 @@ export class GoogleAP2Integration {
       exp: now + 15 * 60, // Expires (15 minutes)
       jti: `jwt_${cartContents.id}_${now}`, // JWT ID
       cart_hash: cartHash, // Cart integrity hash
-      merchant_name: cartContents.merchant_name
+      merchant_name: cartContents.merchant_name,
     };
 
     // Create JWT with RSA256 signing
     const jwt = await new jose.SignJWT(payload)
       .setProtectedHeader({
         alg: 'RS256',
-        kid: `did:chaoschain:${this.agentName}#key-1`
+        kid: `did:chaoschain:${this.agentName}#key-1`,
       })
       .sign(this.privateKey);
 
@@ -329,7 +329,7 @@ export class GoogleAP2Integration {
       // Decode and verify JWT with RSA256
       const { payload } = await jose.jwtVerify(token, publicKey, {
         algorithms: ['RS256'],
-        audience: 'chaoschain:payment_processor'
+        audience: 'chaoschain:payment_processor',
       });
 
       console.log(`✅ JWT token verified successfully with RSA256`);
@@ -360,16 +360,20 @@ export class GoogleAP2Integration {
         'Multi-payment method support',
         'JWT-based merchant authorization',
         'Proper expiry handling',
-        'Cart integrity verification'
+        'Cart integrity verification',
       ],
       cryptographic_features: [
         'JWT signing with RS256 (production)',
         'Cart content hashing for integrity',
         'Timestamp-based expiry',
-        'Replay attack prevention with JTI'
+        'Replay attack prevention with JTI',
       ],
-      compliance: ['Google AP2 Protocol', 'W3C Payment Request API', 'JWT RFC 7519', 'ISO 8601 timestamps']
+      compliance: [
+        'Google AP2 Protocol',
+        'W3C Payment Request API',
+        'JWT RFC 7519',
+        'ISO 8601 timestamps',
+      ],
     };
   }
 }
-

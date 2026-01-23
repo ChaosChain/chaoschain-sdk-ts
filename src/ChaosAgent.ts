@@ -26,19 +26,11 @@ export class ChaosAgent {
   private validationContract: ethers.Contract;
   private signer: ethers.Signer;
 
-  constructor(
-    addresses: ContractAddresses,
-    signer: ethers.Signer,
-    _provider: ethers.Provider
-  ) {
+  constructor(addresses: ContractAddresses, signer: ethers.Signer, _provider: ethers.Provider) {
     this.signer = signer;
 
     // Initialize contract instances
-    this.identityContract = new ethers.Contract(
-      addresses.identity,
-      IDENTITY_REGISTRY_ABI,
-      signer
-    );
+    this.identityContract = new ethers.Contract(addresses.identity, IDENTITY_REGISTRY_ABI, signer);
     this.reputationContract = new ethers.Contract(
       addresses.reputation,
       REPUTATION_REGISTRY_ABI,
@@ -104,7 +96,7 @@ export class ChaosAgent {
   async getAgentMetadata(agentId: bigint): Promise<AgentMetadata | null> {
     try {
       const uri = await this.identityContract.tokenURI(agentId);
-      
+
       if (!uri) {
         return null;
       }
@@ -119,13 +111,13 @@ export class ChaosAgent {
       if (uri.startsWith('ipfs://')) {
         const cid = uri.substring(7);
         const response = await fetch(`https://ipfs.io/ipfs/${cid}`);
-        return response.json();
+        return (await response.json()) as AgentMetadata | null;
       }
 
       // Parse https:// URI
       if (uri.startsWith('https://') || uri.startsWith('http://')) {
         const response = await fetch(uri);
-        return response.json();
+        return (await response.json()) as AgentMetadata | null;
       }
 
       return null;
@@ -189,10 +181,10 @@ export class ChaosAgent {
 
   /**
    * Generate EIP-191 signed feedback authorization (ERC-8004 v1.0)
-   * 
+   *
    * This signature allows a client to submit feedback to an agent's reputation.
    * The agent owner signs to authorize the client to give feedback up to a certain index.
-   * 
+   *
    * @param agentId Target agent ID receiving feedback
    * @param clientAddress Address of the client giving feedback
    * @param indexLimit Maximum feedback index this authorization permits
@@ -235,7 +227,7 @@ export class ChaosAgent {
         ethers.toBeHex(expiry, 32),
         ethers.toBeHex(chainId, 32),
         ethers.zeroPadValue(identityAddress, 32),
-        ethers.zeroPadValue(signerAddress, 32)
+        ethers.zeroPadValue(signerAddress, 32),
       ]);
 
       // Return struct + signature
@@ -268,8 +260,8 @@ export class ChaosAgent {
     const tag2 = feedbackData?.tag2 || ethers.ZeroHash; // bytes32
 
     // Calculate feedback hash
-    const feedbackContent = feedbackData?.content || feedbackUri;
-    const feedbackHash = ethers.keccak256(ethers.toUtf8Bytes(feedbackContent));
+    const feedbackContent = feedbackData?.content || feedbackUri || '';
+    const feedbackHash = ethers.keccak256(ethers.toUtf8Bytes(String(feedbackContent)));
 
     // Feedback auth (289 bytes: struct + signature)
     // If not provided, use empty bytes (will work if no auth required or for self-feedback)
@@ -619,7 +611,12 @@ export class ChaosAgent {
    * Listen for ValidationRequest events (ERC-8004 v1.0)
    */
   onValidationRequest(
-    callback: (validatorAddress: string, agentId: bigint, requestUri: string, requestHash: string) => void
+    callback: (
+      validatorAddress: string,
+      agentId: bigint,
+      requestUri: string,
+      requestHash: string
+    ) => void
   ): void {
     this.validationContract.on('ValidationRequest', callback);
   }
@@ -650,4 +647,3 @@ export class ChaosAgent {
     this.validationContract.removeAllListeners();
   }
 }
-

@@ -10,7 +10,10 @@ export class IPFSLocalStorage implements StorageProvider {
   private apiUrl: string;
   private gatewayUrl: string;
 
-  constructor(apiUrl: string = 'http://localhost:5001', gatewayUrl: string = 'http://localhost:8080') {
+  constructor(
+    apiUrl: string = 'http://localhost:5001',
+    gatewayUrl: string = 'http://localhost:8080'
+  ) {
     this.apiUrl = apiUrl;
     this.gatewayUrl = gatewayUrl;
   }
@@ -123,4 +126,3 @@ export class IPFSLocalStorage implements StorageProvider {
     }
   }
 }
-

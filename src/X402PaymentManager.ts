@@ -8,6 +8,7 @@
  */
 
 import { ethers } from 'ethers';
+import { createHash } from 'crypto';
 import { PaymentError } from './exceptions';
 import { NetworkConfig } from './types';
 
@@ -45,9 +46,9 @@ export interface X402PaymentProof {
   timestamp: Date;
   status: string;
   confirmations: number;
-  fee_amount?: string;        // Fee in base units
-  net_amount?: string;        // Net amount in base units
-  evidence_hash?: string;     // ChaosChain Proof-of-Agency
+  fee_amount?: string; // Fee in base units
+  net_amount?: string; // Net amount in base units
+  evidence_hash?: string; // ChaosChain Proof-of-Agency
 }
 
 /**
@@ -55,17 +56,17 @@ export interface X402PaymentProof {
  * Spec: https://github.com/coinbase/x402
  */
 export interface X402PaymentRequirements {
-  scheme: string;              // e.g., "exact"
-  network: string;             // Network ID
-  maxAmountRequired: string;   // uint256 as string
-  resource: string;            // URL of resource
-  description: string;         // Service description
-  mimeType: string;            // Response MIME type
+  scheme: string; // e.g., "exact"
+  network: string; // Network ID
+  maxAmountRequired: string; // uint256 as string
+  resource: string; // URL of resource
+  description: string; // Service description
+  mimeType: string; // Response MIME type
   outputSchema?: object | null; // Response schema
-  payTo: string;               // Address to pay
-  maxTimeoutSeconds: number;   // Max timeout
-  asset: string;               // ERC-20 contract address (or 0x0 for ETH)
-  extra: object | null;        // Extra info (EIP-3009 details for USDC)
+  payTo: string; // Address to pay
+  maxTimeoutSeconds: number; // Max timeout
+  asset: string; // ERC-20 contract address (or 0x0 for ETH)
+  extra: object | null; // Extra info (EIP-3009 details for USDC)
 }
 
 // ============================================================================
@@ -77,11 +78,11 @@ export interface X402PaymentRequirements {
  * Transmitted as base64-encoded JSON in X-PAYMENT header
  */
 export interface PaymentHeader {
-  sender: string;              // Payer address
-  nonce: string;               // Unique nonce (hex string)
-  validAfter?: string;         // ISO timestamp or unix seconds
-  validBefore?: string;        // ISO timestamp or unix seconds
-  signature?: string;          // EIP-712 signature (hex string)
+  sender: string; // Payer address
+  nonce: string; // Unique nonce (hex string)
+  validAfter?: string; // ISO timestamp or unix seconds
+  validBefore?: string; // ISO timestamp or unix seconds
+  signature?: string; // EIP-712 signature (hex string)
 }
 
 /**
@@ -89,12 +90,12 @@ export interface PaymentHeader {
  * Used for signing and on-chain execution
  */
 export interface TransferAuthorizationParams {
-  from: string;                // Payer address
-  to: string;                  // Recipient address
-  value: bigint;               // Amount in token base units
-  validAfter: bigint;          // Unix timestamp (seconds)
-  validBefore: bigint;         // Unix timestamp (seconds)
-  nonce: string;               // Unique hex nonce (32 bytes)
+  from: string; // Payer address
+  to: string; // Recipient address
+  value: bigint; // Amount in token base units
+  validAfter: bigint; // Unix timestamp (seconds)
+  validBefore: bigint; // Unix timestamp (seconds)
+  nonce: string; // Unique hex nonce (32 bytes)
 }
 
 // ============================================================================
@@ -105,10 +106,10 @@ export interface TransferAuthorizationParams {
  * Facilitator Configuration
  */
 export interface X402FacilitatorConfig {
-  facilitatorUrl?: string;     // Default: https://facilitator.chaoscha.in
-  apiKey?: string;             // Optional API key
+  facilitatorUrl?: string; // Default: https://facilitator.chaoscha.in
+  apiKey?: string; // Optional API key
   mode?: 'managed' | 'decentralized';
-  agentId?: string;            // ERC-8004 tokenId
+  agentId?: string; // ERC-8004 tokenId
 }
 
 /**
@@ -118,7 +119,7 @@ export interface SettleRequest {
   x402Version: number;
   paymentHeader: PaymentHeader | string; // Object or base64 string
   paymentRequirements: X402PaymentRequirements;
-  agentId?: string;            // ERC-8004 tokenId
+  agentId?: string; // ERC-8004 tokenId
 }
 
 /**
@@ -128,20 +129,20 @@ export interface SettleResponse {
   success: boolean;
   error: string | null;
   txHash: string | null;
-  txHashFee?: string;          // Fee transaction hash
+  txHashFee?: string; // Fee transaction hash
   networkId: string | null;
-  consensusProof?: string;     // CRE consensus proof
+  consensusProof?: string; // CRE consensus proof
   timestamp?: number;
-  feeAmount?: string;          // Fee in base units
-  netAmount?: string;          // Net amount in base units
+  feeAmount?: string; // Fee in base units
+  netAmount?: string; // Net amount in base units
   status?: 'pending' | 'partial_settlement' | 'confirmed' | 'failed';
-  evidenceHash?: string;       // Proof-of-Agency evidence
-  proofOfAgency?: string;      // ValidationRegistry tx hash
+  evidenceHash?: string; // Proof-of-Agency evidence
+  proofOfAgency?: string; // ValidationRegistry tx hash
 }
 
 /**
  * X402 Payment Manager - Coinbase HTTP 402 protocol with EIP-3009
- * 
+ *
  * Features:
  * - ✅ EIP-3009 gasless transfers via facilitator
  * - ✅ Signature-based payment authorization
@@ -178,11 +179,12 @@ export class X402PaymentManager {
       'base-sepolia': '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
       'ethereum-sepolia': '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
       'optimism-sepolia': '0x5fd84259d66Cd46123540766Be93DFE6D43130D7',
-      'linea-sepolia': '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238'
+      'linea-sepolia': '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
     };
 
     // Facilitator configuration
-    this.facilitatorUrl = facilitatorConfig.facilitatorUrl ||
+    this.facilitatorUrl =
+      facilitatorConfig.facilitatorUrl ||
       process.env.CC_FACILITATOR_URL ||
       'https://facilitator.chaoscha.in';
     this.facilitatorApiKey = facilitatorConfig.apiKey || process.env.CC_API_KEY;
@@ -211,7 +213,7 @@ export class X402PaymentManager {
       'base-sepolia': '0x8004AA63c570c570eBF15376c0dB199918BFe9Fb',
       'ethereum-sepolia': '0x8004a6090Cd10A7288092483047B097295Fb8847',
       'optimism-sepolia': '0x8004a6090Cd10A7288092483047B097295Fb8847',
-      'linea-sepolia': '0x8004aa7C931bCE1233973a0C6A667f73F66282e7'
+      'linea-sepolia': '0x8004aa7C931bCE1233973a0C6A667f73F66282e7',
     };
 
     return treasuries[network] || treasuries['base-sepolia'];
@@ -226,10 +228,10 @@ export class X402PaymentManager {
       'ethereum-sepolia': 11155111,
       'optimism-sepolia': 11155420,
       'linea-sepolia': 59141,
-      'base': 8453,
-      'ethereum': 1,
-      'optimism': 10,
-      'linea': 59144
+      base: 8453,
+      ethereum: 1,
+      optimism: 10,
+      linea: 59144,
     };
 
     return chainIds[network] || 84532;
@@ -249,15 +251,13 @@ export class X402PaymentManager {
 
   /**
    * Sign EIP-3009 Transfer Authorization
-   * 
+   *
    * This creates an EIP-712 signature for USDC's transferWithAuthorization function.
    * The facilitator will use this signature to execute a gasless transfer on-chain.
-   * 
+   *
    * Spec: https://eips.ethereum.org/EIPS/eip-3009
    */
-  async signTransferAuthorization(
-    params: TransferAuthorizationParams
-  ): Promise<string> {
+  async signTransferAuthorization(params: TransferAuthorizationParams): Promise<string> {
     const usdcAddress = this.usdcAddresses[this.network];
     if (!usdcAddress) {
       throw new PaymentError(`USDC not supported on ${this.network}`);
@@ -268,7 +268,7 @@ export class X402PaymentManager {
       name: 'USD Coin',
       version: '2',
       chainId: this.getChainId(this.network),
-      verifyingContract: usdcAddress
+      verifyingContract: usdcAddress,
     };
 
     // EIP-712 types for transferWithAuthorization
@@ -279,8 +279,8 @@ export class X402PaymentManager {
         { name: 'value', type: 'uint256' },
         { name: 'validAfter', type: 'uint256' },
         { name: 'validBefore', type: 'uint256' },
-        { name: 'nonce', type: 'bytes32' }
-      ]
+        { name: 'nonce', type: 'bytes32' },
+      ],
     };
 
     // Message to sign
@@ -290,7 +290,7 @@ export class X402PaymentManager {
       value: params.value,
       validAfter: params.validAfter,
       validBefore: params.validBefore,
-      nonce: params.nonce
+      nonce: params.nonce,
     };
 
     // Sign with EIP-712
@@ -314,7 +314,7 @@ export class X402PaymentManager {
    */
   private async callFacilitator(endpoint: string, body: any): Promise<any> {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
 
     // Add API key if configured
@@ -334,7 +334,7 @@ export class X402PaymentManager {
       const response = await fetch(`${this.facilitatorUrl}${endpoint}`, {
         method: 'POST',
         headers,
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -350,7 +350,7 @@ export class X402PaymentManager {
 
   /**
    * Settle payment with facilitator (EIP-3009 execution)
-   * 
+   *
    * The facilitator will:
    * 1. Verify the EIP-712 signature
    * 2. Call USDC.transferWithAuthorization() on-chain
@@ -365,7 +365,7 @@ export class X402PaymentManager {
       x402Version: 1,
       paymentHeader,
       paymentRequirements,
-      agentId: this.agentId
+      agentId: this.agentId,
     };
 
     console.log(`💸 Settling payment with facilitator...`);
@@ -413,7 +413,7 @@ export class X402PaymentManager {
       service_description: serviceDescription,
       network: this.network,
       protocol_fee: protocolFee,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     console.log(`📄 Created x402 payment request: ${paymentId}`);
@@ -425,10 +425,13 @@ export class X402PaymentManager {
 
   /**
    * Execute x402 payment (EIP-3009 mode)
-   * 
+   *
    * This method uses EIP-3009 + facilitator for gasless, signature-based payments
    */
-  async executePayment(paymentRequest: X402PaymentRequest, recipientAddress: string): Promise<X402PaymentProof> {
+  async executePayment(
+    paymentRequest: X402PaymentRequest,
+    recipientAddress: string
+  ): Promise<X402PaymentProof> {
     console.log(`💸 Executing x402 payment (EIP-3009): ${paymentRequest.payment_id}`);
     console.log(`   Network: ${this.network}`);
     console.log(`   Recipient: ${recipientAddress}`);
@@ -450,7 +453,11 @@ export class X402PaymentManager {
 
       if (currency === 'ETH' || currency === 'NATIVE') {
         // Native token transfer (old flow, TODO: add EIP-3009 for ETH)
-        const { mainTx, feeTx } = await this.executeNativePayment(recipientAddress, amount, protocolFee);
+        const { mainTx, feeTx } = await this.executeNativePayment(
+          recipientAddress,
+          amount,
+          protocolFee
+        );
         mainTxHash = mainTx;
         feeTxHash = feeTx;
       } else if (currency === 'USDC') {
@@ -486,7 +493,7 @@ export class X402PaymentManager {
         status: receipt?.status === 1 ? 'confirmed' : 'pending',
         confirmations: receipt ? 1 : 0,
         fee_amount: feeAmount,
-        net_amount: netAmount
+        net_amount: netAmount,
       };
 
       console.log(`✅ x402 payment executed successfully (EIP-3009)`);
@@ -500,7 +507,9 @@ export class X402PaymentManager {
 
       return proof;
     } catch (e: any) {
-      throw new PaymentError(`x402 payment failed: ${e.message}`, { payment_id: paymentRequest.payment_id });
+      throw new PaymentError(`x402 payment failed: ${e.message}`, {
+        payment_id: paymentRequest.payment_id,
+      });
     }
   }
 
@@ -519,7 +528,7 @@ export class X402PaymentManager {
     // Send main payment
     const mainTx = await this.wallet.sendTransaction({
       to: recipientAddress,
-      value: amountWei
+      value: amountWei,
     });
     await mainTx.wait();
 
@@ -528,7 +537,7 @@ export class X402PaymentManager {
     if (protocolFee > 0) {
       const feeTx = await this.wallet.sendTransaction({
         to: this.treasuryAddress,
-        value: feeWei
+        value: feeWei,
       });
       await feeTx.wait();
       feeTxHash = feeTx.hash;
@@ -536,19 +545,19 @@ export class X402PaymentManager {
 
     return {
       mainTx: mainTx.hash,
-      feeTx: feeTxHash
+      feeTx: feeTxHash,
     };
   }
 
   /**
    * Execute USDC payment using EIP-3009 + Facilitator
-   * 
+   *
    * NEW FLOW (EIP-3009 compliant):
    * 1. Generate EIP-712 signature for transferWithAuthorization
    * 2. Send signature to facilitator
    * 3. Facilitator executes on-chain (gas-sponsored)
    * 4. Return transaction hash
-   * 
+   *
    * Benefits:
    * - ✅ Gasless (facilitator pays gas)
    * - ✅ Single signature (no approve + transfer)
@@ -568,7 +577,6 @@ export class X402PaymentManager {
     // USDC has 6 decimals
     const totalAmountWei = ethers.parseUnits(amount.toString(), 6);
     const feeWei = ethers.parseUnits(protocolFee.toString(), 6);
-    const netAmountWei = totalAmountWei - feeWei;
 
     console.log(`💳 Preparing EIP-3009 payment authorization...`);
     console.log(`   Total: ${amount} USDC`);
@@ -592,7 +600,7 @@ export class X402PaymentManager {
       value: totalAmountWei, // Full amount (facilitator splits fee)
       validAfter,
       validBefore,
-      nonce
+      nonce,
     };
 
     // Sign EIP-712 authorization
@@ -604,7 +612,7 @@ export class X402PaymentManager {
       nonce: nonce,
       validAfter: validAfter.toString(),
       validBefore: validBefore.toString(),
-      signature
+      signature,
     };
 
     // Create payment requirements for facilitator
@@ -625,8 +633,8 @@ export class X402PaymentManager {
         // ChaosChain fee configuration
         protocolFee: feeWei.toString(),
         treasuryAddress: this.treasuryAddress,
-        feePercentage: this.protocolFeePercentage * 100
-      }
+        feePercentage: this.protocolFeePercentage * 100,
+      },
     };
 
     // Settle with facilitator
@@ -640,7 +648,7 @@ export class X402PaymentManager {
       mainTx: settleResponse.txHash,
       feeTx: settleResponse.txHashFee,
       feeAmount: settleResponse.feeAmount,
-      netAmount: settleResponse.netAmount
+      netAmount: settleResponse.netAmount,
     };
   }
 
@@ -689,13 +697,18 @@ export class X402PaymentManager {
     resource: string = '/'
   ): X402PaymentRequirements {
     // Get USDC address for asset field
-    const asset = currency === 'USDC' ? this.usdcAddresses[this.network] : '0x0000000000000000000000000000000000000000';
+    const asset =
+      currency === 'USDC'
+        ? this.usdcAddresses[this.network]
+        : '0x0000000000000000000000000000000000000000';
 
     // Official x402 paymentRequirements schema
     return {
       scheme: 'exact', // x402 scheme for exact payment amount
       network: this.network,
-      maxAmountRequired: ethers.parseUnits(amount.toString(), currency === 'USDC' ? 6 : 18).toString(),
+      maxAmountRequired: ethers
+        .parseUnits(amount.toString(), currency === 'USDC' ? 6 : 18)
+        .toString(),
       resource: resource,
       description: serviceDescription,
       mimeType: 'application/json',
@@ -703,10 +716,13 @@ export class X402PaymentManager {
       payTo: this.wallet.address,
       maxTimeoutSeconds: 60,
       asset: asset || '0x0000000000000000000000000000000000000000',
-      extra: currency === 'USDC' && asset ? {
-        name: 'USD Coin',
-        version: '2'
-      } : null
+      extra:
+        currency === 'USDC' && asset
+          ? {
+              name: 'USD Coin',
+              version: '2',
+            }
+          : null,
     };
   }
 
@@ -735,20 +751,19 @@ export class X402PaymentManager {
       network: paymentProof.network,
       chain_id: paymentProof.chain_id,
       timestamp: paymentProof.timestamp.toISOString(),
-      status: paymentProof.status
+      status: paymentProof.status,
     };
 
     // Create receipt hash
-    const crypto = require('crypto');
     const receiptJson = JSON.stringify(receiptData);
-    const receiptHash = crypto.createHash('sha256').update(receiptJson).digest('hex');
+    const receiptHash = createHash('sha256').update(receiptJson).digest('hex');
 
     return {
       receipt_type: 'x402_payment',
       receipt_hash: receiptHash,
       receipt_data: receiptData,
       verification_url: `https://explorer.base.org/tx/${paymentProof.main_transaction_hash}`,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -768,9 +783,8 @@ export class X402PaymentManager {
         protocol_fees: true,
         multi_currency: true,
         payment_receipts: true,
-        gasless_transfers: true // NEW: EIP-3009 gasless transfers
-      }
+        gasless_transfers: true, // NEW: EIP-3009 gasless transfers
+      },
     };
   }
 }
-

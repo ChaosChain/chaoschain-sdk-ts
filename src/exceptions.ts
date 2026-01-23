@@ -23,14 +23,6 @@ export class ChaosChainSDKError extends Error {
   }
 }
 
-export class AgentRegistrationError extends ChaosChainSDKError {
-  constructor(message: string, details?: Record<string, any>) {
-    super(message, details);
-    this.name = 'AgentRegistrationError';
-    Object.setPrototypeOf(this, AgentRegistrationError.prototype);
-  }
-}
-
 export class PaymentError extends ChaosChainSDKError {
   constructor(message: string, details?: Record<string, any>) {
     super(message, details);
@@ -55,11 +47,27 @@ export class IntegrityVerificationError extends ChaosChainSDKError {
   }
 }
 
+export class ConfigurationError extends ChaosChainSDKError {
+  constructor(message: string, details?: Record<string, any>) {
+    super(message, details);
+    this.name = 'ConfigurationError';
+    Object.setPrototypeOf(this, ConfigurationError.prototype);
+  }
+}
+
 export class NetworkError extends ChaosChainSDKError {
   constructor(message: string, details?: Record<string, any>) {
     super(message, details);
     this.name = 'NetworkError';
     Object.setPrototypeOf(this, NetworkError.prototype);
+  }
+}
+
+export class AgentRegistrationError extends ChaosChainSDKError {
+  constructor(message: string, details?: Record<string, any>) {
+    super(message, details);
+    this.name = 'AgentRegistrationError';
+    Object.setPrototypeOf(this, AgentRegistrationError.prototype);
   }
 }
 
@@ -70,28 +78,3 @@ export class ContractError extends ChaosChainSDKError {
     Object.setPrototypeOf(this, ContractError.prototype);
   }
 }
-
-export class ValidationError extends ChaosChainSDKError {
-  constructor(message: string, details?: Record<string, any>) {
-    super(message, details);
-    this.name = 'ValidationError';
-    Object.setPrototypeOf(this, ValidationError.prototype);
-  }
-}
-
-export class ConfigurationError extends ChaosChainSDKError {
-  constructor(message: string, details?: Record<string, any>) {
-    super(message, details);
-    this.name = 'ConfigurationError';
-    Object.setPrototypeOf(this, ConfigurationError.prototype);
-  }
-}
-
-export class AuthenticationError extends ChaosChainSDKError {
-  constructor(message: string, details?: Record<string, any>) {
-    super(message, details);
-    this.name = 'AuthenticationError';
-    Object.setPrototypeOf(this, AuthenticationError.prototype);
-  }
-}
-

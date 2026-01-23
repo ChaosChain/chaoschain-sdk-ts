@@ -8,6 +8,7 @@
 import axios from 'axios';
 import * as fs from 'fs';
 import * as path from 'path';
+import FormData from 'form-data';
 import { StorageError } from './exceptions';
 
 export interface StorageResult {
@@ -26,7 +27,7 @@ export interface StorageBackend {
 
 /**
  * Local IPFS Storage Backend
- * 
+ *
  * Requires: ipfs daemon running locally
  * Cost: Free
  * Setup: brew install ipfs && ipfs daemon
@@ -44,13 +45,12 @@ export class LocalIPFSStorage implements StorageBackend {
       const buffer = typeof data === 'string' ? Buffer.from(data) : data;
 
       // Use multipart/form-data to upload
-      const FormData = require('form-data');
       const form = new FormData();
       form.append('file', buffer, { contentType: mime });
 
       const response = await axios.post(`${this.apiUrl}/api/v0/add`, form, {
         headers: form.getHeaders(),
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
       });
 
       const cid = response.data.Hash;
@@ -60,14 +60,13 @@ export class LocalIPFSStorage implements StorageBackend {
         cid,
         url: `ipfs://${cid}`,
         size: response.data.Size,
-        provider: 'local-ipfs'
+        provider: 'local-ipfs',
       };
     } catch (e: any) {
       if (e.code === 'ECONNREFUSED') {
-        throw new StorageError(
-          'Local IPFS daemon not running. Start with: ipfs daemon',
-          { api_url: this.apiUrl }
-        );
+        throw new StorageError('Local IPFS daemon not running. Start with: ipfs daemon', {
+          api_url: this.apiUrl,
+        });
       }
       throw new StorageError(`Local IPFS upload failed: ${e.message}`);
     }
@@ -75,14 +74,10 @@ export class LocalIPFSStorage implements StorageBackend {
 
   async get(cid: string): Promise<Buffer> {
     try {
-      const response = await axios.post(
-        `${this.apiUrl}/api/v0/cat`,
-        null,
-        {
-          params: { arg: cid },
-          responseType: 'arraybuffer'
-        }
-      );
+      const response = await axios.post(`${this.apiUrl}/api/v0/cat`, null, {
+        params: { arg: cid },
+        responseType: 'arraybuffer',
+      });
 
       return Buffer.from(response.data);
     } catch (e: any) {
@@ -93,7 +88,7 @@ export class LocalIPFSStorage implements StorageBackend {
   async pin(cid: string): Promise<void> {
     try {
       await axios.post(`${this.apiUrl}/api/v0/pin/add`, null, {
-        params: { arg: cid }
+        params: { arg: cid },
       });
       console.log(`📌 Pinned to local IPFS: ${cid}`);
     } catch (e: any) {
@@ -104,7 +99,7 @@ export class LocalIPFSStorage implements StorageBackend {
   async unpin(cid: string): Promise<void> {
     try {
       await axios.post(`${this.apiUrl}/api/v0/pin/rm`, null, {
-        params: { arg: cid }
+        params: { arg: cid },
       });
       console.log(`📌 Unpinned from local IPFS: ${cid}`);
     } catch (e: any) {
@@ -115,7 +110,7 @@ export class LocalIPFSStorage implements StorageBackend {
 
 /**
  * Pinata Cloud IPFS Storage Backend
- * 
+ *
  * Requires: Pinata API key
  * Cost: Free tier + paid plans
  * Setup: Get JWT from https://pinata.cloud
@@ -134,19 +129,18 @@ export class PinataStorage implements StorageBackend {
     try {
       const buffer = typeof data === 'string' ? Buffer.from(data) : data;
 
-      const FormData = require('form-data');
       const form = new FormData();
       form.append('file', buffer, {
         contentType: mime,
-        filename: `file_${Date.now()}`
+        filename: `file_${Date.now()}`,
       });
 
       const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
         headers: {
           ...form.getHeaders(),
-          Authorization: `Bearer ${this.jwtToken}`
+          Authorization: `Bearer ${this.jwtToken}`,
         },
-        maxBodyLength: Infinity
+        maxBodyLength: Infinity,
       });
 
       const cid = response.data.IpfsHash;
@@ -156,7 +150,7 @@ export class PinataStorage implements StorageBackend {
         cid,
         url: `${this.gatewayUrl}/ipfs/${cid}`,
         size: response.data.PinSize,
-        provider: 'pinata'
+        provider: 'pinata',
       };
     } catch (e: any) {
       throw new StorageError(`Pinata upload failed: ${e.message}`);
@@ -166,7 +160,7 @@ export class PinataStorage implements StorageBackend {
   async get(cid: string): Promise<Buffer> {
     try {
       const response = await axios.get(`${this.gatewayUrl}/ipfs/${cid}`, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
 
       return Buffer.from(response.data);
@@ -183,8 +177,8 @@ export class PinataStorage implements StorageBackend {
         {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         }
       );
       console.log(`📌 Pinned to Pinata: ${cid}`);
@@ -197,8 +191,8 @@ export class PinataStorage implements StorageBackend {
     try {
       await axios.delete(`https://api.pinata.cloud/pinning/unpin/${cid}`, {
         headers: {
-          Authorization: `Bearer ${this.jwtToken}`
-        }
+          Authorization: `Bearer ${this.jwtToken}`,
+        },
       });
       console.log(`📌 Unpinned from Pinata: ${cid}`);
     } catch (e: any) {
@@ -209,7 +203,7 @@ export class PinataStorage implements StorageBackend {
 
 /**
  * Irys (Arweave) Storage Backend
- * 
+ *
  * Requires: Arweave wallet key
  * Cost: Pay per upload (permanent storage)
  * Setup: Fund wallet with AR tokens
@@ -237,7 +231,7 @@ export class IrysStorage implements StorageBackend {
       return {
         cid: mockCid,
         url: `https://arweave.net/${mockCid}`,
-        provider: 'irys'
+        provider: 'irys',
       };
     } catch (e: any) {
       throw new StorageError(`Irys upload failed: ${e.message}`);
@@ -247,7 +241,7 @@ export class IrysStorage implements StorageBackend {
   async get(cid: string): Promise<Buffer> {
     try {
       const response = await axios.get(`https://arweave.net/${cid}`, {
-        responseType: 'arraybuffer'
+        responseType: 'arraybuffer',
       });
 
       return Buffer.from(response.data);
@@ -259,7 +253,7 @@ export class IrysStorage implements StorageBackend {
 
 /**
  * 0G Storage Backend
- * 
+ *
  * Requires: 0G CLI running as sidecar
  * Cost: Gas fees on 0G Network
  * Setup: Install 0G CLI and start sidecar
@@ -285,7 +279,7 @@ export class ZeroGStorage implements StorageBackend {
       return {
         cid: mockCid,
         url: `0g://${mockCid}`,
-        provider: '0g-storage'
+        provider: '0g-storage',
       };
     } catch (e: any) {
       throw new StorageError(`0G Storage upload failed: ${e.message}`);
@@ -305,7 +299,7 @@ export class ZeroGStorage implements StorageBackend {
 
 /**
  * Auto-detecting Storage Manager
- * 
+ *
  * Automatically selects the best available storage backend:
  * 1. Try local IPFS first (fastest, free)
  * 2. Fall back to Pinata if configured
@@ -403,4 +397,3 @@ export class AutoStorageManager implements StorageBackend {
     return this.backends.map((backend) => backend.constructor.name);
   }
 }
-

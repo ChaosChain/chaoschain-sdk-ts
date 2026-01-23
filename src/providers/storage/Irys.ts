@@ -32,9 +32,7 @@ export class IrysStorage implements StorageProvider {
   async upload(_data: Buffer | string | object, _options?: UploadOptions): Promise<UploadResult> {
     try {
       // This is a placeholder - actual implementation requires @irys/sdk
-      throw new Error(
-        'Irys storage requires @irys/sdk to be installed: npm install @irys/sdk'
-      );
+      throw new Error('Irys storage requires @irys/sdk to be installed: npm install @irys/sdk');
 
       // In production with @irys/sdk installed:
       // const Irys = require('@irys/sdk').default;

@@ -7,7 +7,14 @@ export default defineConfig({
     'providers/compute/index': 'src/providers/compute/index.ts'
   },
   format: ['cjs', 'esm'],
-  dts: false,
+  dts: {
+    compilerOptions: {
+      skipLibCheck: true,
+      noUnusedLocals: false,
+      noUnusedParameters: false,
+      strict: false,
+    },
+  },
   splitting: false,
   sourcemap: true,
   clean: true,

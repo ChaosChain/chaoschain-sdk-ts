@@ -153,11 +153,13 @@ describe('Type Exports', () => {
 
     it('should support inference execution', async () => {
       const mockCompute: ComputeProvider = {
-        inference: async (model: string, input: unknown) => ({ result: `Processed ${input} with ${model}` }),
+        inference: async (model: string, input: unknown) => ({
+          result: `Processed ${input} with ${model}`,
+        }),
         getModels: async () => ['gpt-4', 'claude-3'],
       };
 
-      const result = await mockCompute.inference('gpt-4', 'test input') as any;
+      const result = (await mockCompute.inference('gpt-4', 'test input')) as any;
       expect(result.result).toContain('test input');
       expect(result.result).toContain('gpt-4');
     });
@@ -413,4 +415,3 @@ describe('Type Exports', () => {
     });
   });
 });
-

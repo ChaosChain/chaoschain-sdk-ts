@@ -7,6 +7,7 @@
  * Based on: https://github.com/google-agentic-commerce/a2a-x402/blob/main/v0.1/spec.md
  */
 
+import { createHash } from 'crypto';
 import { NetworkConfig } from './types';
 
 export enum PaymentMethod {
@@ -14,7 +15,7 @@ export enum PaymentMethod {
   GOOGLE_PAY = 'https://google.com/pay',
   APPLE_PAY = 'https://apple.com/apple-pay',
   PAYPAL = 'https://paypal.com',
-  A2A_X402 = 'https://a2a.org/x402'
+  A2A_X402 = 'https://a2a.org/x402',
 }
 import { PaymentError } from './exceptions';
 
@@ -69,7 +70,7 @@ export interface X402PaymentResponse {
 
 /**
  * A2A-x402 Extension for cryptocurrency payments within AP2 framework
- * 
+ *
  * This class bridges Google's AP2 protocol with x402 crypto payments,
  * enabling seamless crypto settlement for agent-to-agent commerce.
  */
@@ -108,8 +109,8 @@ export class A2AX402Extension {
       supported_methods: 'basic-card',
       data: {
         supportedNetworks: ['visa', 'mastercard', 'amex', 'discover'],
-        supportedTypes: ['credit', 'debit']
-      }
+        supportedTypes: ['credit', 'debit'],
+      },
     });
 
     // 2. Google Pay
@@ -124,11 +125,11 @@ export class A2AX402Extension {
             type: 'CARD',
             parameters: {
               allowedAuthMethods: ['PAN_ONLY', 'CRYPTOGRAM_3DS'],
-              allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA']
-            }
-          }
-        ]
-      }
+              allowedCardNetworks: ['AMEX', 'DISCOVER', 'JCB', 'MASTERCARD', 'VISA'],
+            },
+          },
+        ],
+      },
     });
 
     // 3. Apple Pay
@@ -138,8 +139,8 @@ export class A2AX402Extension {
         version: 3,
         merchantIdentifier: `merchant.chaoschain.${this.agentName.toLowerCase()}`,
         merchantCapabilities: ['supports3DS'],
-        supportedNetworks: ['visa', 'masterCard', 'amex', 'discover']
-      }
+        supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
+      },
     });
 
     // 4. ChaosChain Crypto Pay (our A2A-x402 implementation)
@@ -149,8 +150,8 @@ export class A2AX402Extension {
         supportedCryptocurrencies: this.supportedCryptoMethods,
         supportedNetworks: this.supportedNetworks,
         settlementAddress: 'dynamic',
-        protocolVersion: 'x402-v1.0'
-      }
+        protocolVersion: 'x402-v1.0',
+      },
     });
 
     // 5. PayPal (for completeness)
@@ -158,8 +159,8 @@ export class A2AX402Extension {
       supported_methods: 'https://paypal.com',
       data: {
         environment: 'sandbox',
-        intent: 'capture'
-      }
+        intent: 'capture',
+      },
     });
 
     return methods;
@@ -180,10 +181,10 @@ export class A2AX402Extension {
       method_data: {
         w3c_methods: this.w3cPaymentMethods.map((method) => ({
           supportedMethods: method.supported_methods,
-          data: method.data
+          data: method.data,
         })),
-        crypto_settlement_address: settlementAddress
-      }
+        crypto_settlement_address: settlementAddress,
+      },
     };
   }
 
@@ -205,16 +206,16 @@ export class A2AX402Extension {
       id: `x402_${cartId}_${Date.now().toString(36)}`,
       total: {
         amount: { value: totalAmount.toString(), currency },
-        label: `Payment for ${items.length} items`
+        label: `Payment for ${items.length} items`,
       },
       display_items: items.map((item) => ({
         label: item.name || item.service || 'Item',
-        amount: { value: (item.price || 0).toString(), currency }
+        amount: { value: (item.price || 0).toString(), currency },
       })),
       x402_methods: x402Methods,
       settlement_address: settlementAddress,
       network: this.network,
-      expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString()
+      expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
     };
 
     console.log(`💳 Created x402 payment request: ${paymentRequest.id}`);
@@ -259,7 +260,7 @@ export class A2AX402Extension {
       status: 'confirmed',
       timestamp: paymentProof.timestamp.toISOString(),
       gas_fee: undefined,
-      protocol_fee: pmPaymentRequest.protocol_fee
+      protocol_fee: pmPaymentRequest.protocol_fee,
     };
 
     console.log(`✅ x402 payment confirmed: ${response.transaction_hash}`);
@@ -294,7 +295,12 @@ export class A2AX402Extension {
       }
 
       if (methodEnum) {
-        const result = this.paymentManager.executeTraditionalPayment(methodEnum, amount, currency, paymentData);
+        const result = this.paymentManager.executeTraditionalPayment(
+          methodEnum,
+          amount,
+          currency,
+          paymentData
+        );
 
         // Convert to TraditionalPaymentResponse
         return {
@@ -306,7 +312,7 @@ export class A2AX402Extension {
           transaction_id: result.transaction_id,
           authorization_code: result.processor_response?.authorization_code,
           timestamp: result.timestamp,
-          receipt_data: result.processor_response
+          receipt_data: result.processor_response,
         };
       }
     }
@@ -320,7 +326,7 @@ export class A2AX402Extension {
       currency,
       status: 'failed',
       timestamp: new Date().toISOString(),
-      receipt_data: { error: 'Unsupported payment method' }
+      receipt_data: { error: 'Unsupported payment method' },
     };
   }
 
@@ -350,20 +356,19 @@ export class A2AX402Extension {
       settlement_address: paymentResponse.settlement_address,
       timestamp: paymentResponse.timestamp,
       agent_payer: 'unknown',
-      agent_payee: this.agentName
+      agent_payee: this.agentName,
     };
 
     // Create proof hash
     const proofJson = JSON.stringify(proofData);
-    const crypto = require('crypto');
-    const proofHash = crypto.createHash('sha256').update(proofJson).digest('hex');
+    const proofHash = createHash('sha256').update(proofJson).digest('hex');
 
     return {
       proof_type: 'a2a_x402_payment',
       proof_hash: proofHash,
       proof_data: proofData,
       verification_method: 'on_chain_transaction',
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
   }
 
@@ -389,7 +394,7 @@ export class A2AX402Extension {
         'on_chain_verification',
         'protocol_fees',
         'gas_optimization',
-        'multi_network_support'
+        'multi_network_support',
       ],
       compliance: [
         'W3C Payment Request API',
@@ -398,13 +403,12 @@ export class A2AX402Extension {
         'Apple Pay JS API v3',
         'PayPal Checkout API',
         'EIP-20 Token Standard',
-        'HTTP 402 Payment Required'
+        'HTTP 402 Payment Required',
       ],
       payment_processors: {
         traditional: ['simulated_processor', 'google_pay', 'apple_pay', 'paypal'],
-        crypto: ['chaoschain_x402', 'base_sepolia', 'ethereum']
-      }
+        crypto: ['chaoschain_x402', 'base_sepolia', 'ethereum'],
+      },
     };
   }
 }
-

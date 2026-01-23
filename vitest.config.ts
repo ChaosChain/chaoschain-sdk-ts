@@ -14,6 +14,10 @@ export default defineConfig({
         '**/*.spec.ts',
         '**/*.config.ts'
       ]
+    },
+    // Resolve axios and other optional dependencies
+    deps: {
+      inline: ['axios']
     }
   }
 });

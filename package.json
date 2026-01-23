@@ -32,9 +32,12 @@
     "dev": "tsup --watch",
     "test": "vitest",
     "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:protocol": "tsx test-protocol-e2e.ts",
     "test:facilitator": "tsx test-facilitator-integration.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -55,15 +58,20 @@
     "url": "https://github.com/ChaosChain/chaoschain-sdk-ts.git"
   },
   "dependencies": {
+    "axios": "^1.13.2",
     "ethers": "^6.15.0",
     "ipfs-http-client": "^60.0.1",
     "jose": "^5.9.6"
   },
   "devDependencies": {
+    "@types/form-data": "^2.5.2",
     "@types/node": "^20.10.5",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^8.56.0",
+    "form-data": "^4.0.5",
+    "prettier": "^3.8.1",
     "tsup": "^8.5.0",
     "tsx": "^4.19.2",
     "typescript": "^5.3.3",

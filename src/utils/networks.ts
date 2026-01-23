@@ -5,6 +5,17 @@
 import { NetworkConfig, NetworkInfo, ContractAddresses } from '../types';
 
 /**
+ * ChaosChain Protocol contract addresses
+ */
+export interface ChaosChainProtocolAddresses {
+  chaosRegistry: string;
+  chaosCore: string;
+  rewardsDistributor: string;
+  studioFactory: string;
+  predictionLogic?: string;
+}
+
+/**
  * ERC-8004 v1.0 contract addresses (pre-deployed)
  */
 export const ERC8004_ADDRESSES: Record<string, ContractAddresses> = {
@@ -131,7 +142,7 @@ export const NETWORK_INFO: Record<string, NetworkInfo> = {
  * Get network info by name
  */
 export function getNetworkInfo(network: NetworkConfig | string): NetworkInfo {
-  const networkKey = typeof network === 'string' ? network : network.valueOf();
+  const networkKey = typeof network === 'string' ? network : (network as NetworkConfig);
   const info = NETWORK_INFO[networkKey];
 
   if (!info) {
@@ -162,3 +173,38 @@ export function getSupportedNetworks(): string[] {
   return Object.keys(NETWORK_INFO);
 }
 
+/**
+ * ChaosChain Protocol contract addresses by network
+ */
+export interface ChaosChainProtocolAddresses {
+  chaosRegistry: string;
+  chaosCore: string;
+  rewardsDistributor: string;
+  studioFactory: string;
+  predictionLogic?: string;
+}
+
+export const CHAOSCHAIN_PROTOCOL_ADDRESSES: Record<string, ChaosChainProtocolAddresses> = {
+  'ethereum-sepolia': {
+    chaosRegistry: '0x7F38C1aFFB24F30500d9174ed565110411E42d50',
+    chaosCore: '0xF6a57f04736A52a38b273b0204d636506a780E67',
+    rewardsDistributor: '0x0549772a3fF4F095C57AEFf655B3ed97B7925C19',
+    studioFactory: '0x230e76a105A9737Ea801BB7d0624D495506EE257',
+    predictionLogic: '0xE90CaE8B64458ba796F462AB48d84F6c34aa29a3',
+  },
+  'base-sepolia': {
+    chaosRegistry: '0x0000000000000000000000000000000000000000', // Not yet deployed
+    chaosCore: '0x0000000000000000000000000000000000000000',
+    rewardsDistributor: '0x0000000000000000000000000000000000000000',
+    studioFactory: '0x0000000000000000000000000000000000000000',
+  },
+};
+
+/**
+ * Get ChaosChain protocol addresses for a network
+ */
+export function getChaosChainProtocolAddresses(
+  network: string
+): ChaosChainProtocolAddresses | null {
+  return CHAOSCHAIN_PROTOCOL_ADDRESSES[network] || null;
+}

@@ -12,7 +12,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
     });
 
@@ -21,7 +21,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('base-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
     });
 
@@ -30,7 +30,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('linea-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
     });
   });
@@ -41,7 +41,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.registerIdentity).toBe('function');
     });
 
@@ -50,7 +50,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.giveFeedback).toBe('function');
     });
 
@@ -59,7 +59,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.requestValidation).toBe('function');
     });
 
@@ -68,7 +68,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.respondToValidation).toBe('function');
     });
 
@@ -77,7 +77,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.getAgentMetadata).toBe('function');
     });
 
@@ -86,7 +86,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.setAgentUri).toBe('function');
     });
 
@@ -95,7 +95,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(typeof agent.generateFeedbackAuthorization).toBe('function');
     });
   });
@@ -106,7 +106,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('ethereum-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
       expect(addresses.identity).toBeDefined();
       expect(addresses.reputation).toBeDefined();
@@ -118,7 +118,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('base-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
       expect(addresses.identity).toBe('0x8004AA63c570c570eBF15376c0dB199918BFe9Fb');
       expect(addresses.reputation).toBe('0x8004bd8daB57f14Ed299135749a5CB5c42d341BF');
@@ -130,7 +130,7 @@ describe('ChaosAgent', () => {
       const signer = new ethers.Wallet(testPrivateKey, provider);
       const addresses = getContractAddresses('linea-sepolia');
       const agent = new ChaosAgent(addresses, signer, provider);
-      
+
       expect(agent).toBeDefined();
       expect(addresses.identity).toBe('0x8004aa7C931bCE1233973a0C6A667f73F66282e7');
       expect(addresses.reputation).toBe('0x8004bd8483b99310df121c46ED8858616b2Bba02');

@@ -16,7 +16,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Initialization', () => {
     it('should initialize with wallet and network', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       expect(paymentManager).toBeDefined();
     });
 
@@ -24,15 +24,15 @@ describe('X402PaymentManager (EIP-3009)', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia', {
         facilitatorUrl: 'http://localhost:8402',
         mode: 'managed',
-        agentId: '8004#123'
+        agentId: '8004#123',
       });
-      
+
       expect(paymentManager).toBeDefined();
     });
 
     it('should use default facilitator URL if not provided', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       expect(paymentManager).toBeDefined();
       // Default is https://facilitator.chaoscha.in
     });
@@ -41,7 +41,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Payment Request Creation', () => {
     it('should create payment request with USDC', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const request = paymentManager.createPaymentRequest(
         'AliceAgent',
         'BobAgent',
@@ -63,14 +63,8 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should include protocol fee in request', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
-      const request = paymentManager.createPaymentRequest(
-        'Alice',
-        'Bob',
-        100.0,
-        'USDC',
-        'Test'
-      );
+
+      const request = paymentManager.createPaymentRequest('Alice', 'Bob', 100.0, 'USDC', 'Test');
 
       expect(request.protocol_fee).toBeDefined();
       expect(request.protocol_fee).toBe(2.5); // 2.5% of 100
@@ -78,13 +72,8 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should calculate 2.5% protocol fee correctly', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
-      const request = paymentManager.createPaymentRequest(
-        'Alice',
-        'Bob',
-        100.0,
-        'USDC'
-      );
+
+      const request = paymentManager.createPaymentRequest('Alice', 'Bob', 100.0, 'USDC');
 
       const expectedFee = 2.5; // 2.5% of 100
       expect(request.protocol_fee).toBe(expectedFee);
@@ -92,7 +81,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should generate unique payment IDs', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const request1 = paymentManager.createPaymentRequest('Alice', 'Bob', 10.0, 'USDC');
       const request2 = paymentManager.createPaymentRequest('Alice', 'Bob', 10.0, 'USDC');
 
@@ -101,7 +90,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should include timestamp in request', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const request = paymentManager.createPaymentRequest('Alice', 'Bob', 10.0, 'USDC');
 
       expect(request.created_at).toBeDefined();
@@ -112,7 +101,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Protocol Fee Calculation', () => {
     it('should calculate fee correctly for various amounts', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const testCases = [
         { amount: 100, expectedFee: 2.5 },
         { amount: 1000, expectedFee: 25 },
@@ -127,7 +116,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should handle very small amounts', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const request = paymentManager.createPaymentRequest('Alice', 'Bob', 0.01, 'USDC');
 
       expect(request.protocol_fee).toBeDefined();
@@ -136,7 +125,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should handle very large amounts', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const request = paymentManager.createPaymentRequest('Alice', 'Bob', 1000000, 'USDC');
 
       expect(request.protocol_fee).toBeDefined();
@@ -148,26 +137,16 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Multi-Currency Support', () => {
     it('should support USDC', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
-      const request = paymentManager.createPaymentRequest(
-        'Alice',
-        'Bob',
-        100.0,
-        'USDC'
-      );
+
+      const request = paymentManager.createPaymentRequest('Alice', 'Bob', 100.0, 'USDC');
 
       expect(request.currency).toBe('USDC');
     });
 
     it('should support ETH', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
-      const request = paymentManager.createPaymentRequest(
-        'Alice',
-        'Bob',
-        1.0,
-        'ETH'
-      );
+
+      const request = paymentManager.createPaymentRequest('Alice', 'Bob', 1.0, 'ETH');
 
       expect(request.currency).toBe('ETH');
     });
@@ -176,12 +155,8 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Payment Requirements', () => {
     it('should create payment requirements with correct schema', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
-      const requirements = paymentManager.createPaymentRequirements(
-        10.0,
-        'USDC',
-        'Test service'
-      );
+
+      const requirements = paymentManager.createPaymentRequirements(10.0, 'USDC', 'Test service');
 
       expect(requirements).toBeDefined();
       expect(requirements.scheme).toBe('exact');
@@ -195,7 +170,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should include EIP-3009 extra data for USDC', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const requirements = paymentManager.createPaymentRequirements(10.0, 'USDC');
 
       expect(requirements.extra).toBeDefined();
@@ -205,7 +180,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should use correct USDC address for network', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const requirements = paymentManager.createPaymentRequirements(10.0, 'USDC');
 
       expect(requirements.asset).toBe('0x036CbD53842c5426634e7929541eC2318f3dCF7e');
@@ -215,14 +190,14 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('EIP-3009 Signature Generation', () => {
     it('should generate transfer authorization signature', async () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const params = {
         from: wallet.address,
         to: testRecipient,
         value: ethers.parseUnits('10.0', 6), // 10 USDC
         validAfter: BigInt(Math.floor(Date.now() / 1000)),
         validBefore: BigInt(Math.floor(Date.now() / 1000) + 3600),
-        nonce: ethers.hexlify(ethers.randomBytes(32))
+        nonce: ethers.hexlify(ethers.randomBytes(32)),
       };
 
       const signature = await paymentManager.signTransferAuthorization(params);
@@ -236,7 +211,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Payment Stats', () => {
     it('should return payment statistics', () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const stats = paymentManager.getPaymentStats();
 
       expect(stats).toBeDefined();
@@ -256,7 +231,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
   describe('Payment History', () => {
     it('should return payment history', async () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const history = await paymentManager.getPaymentHistory();
 
       expect(Array.isArray(history)).toBe(true);
@@ -265,7 +240,7 @@ describe('X402PaymentManager (EIP-3009)', () => {
 
     it('should support limit parameter', async () => {
       const paymentManager = new X402PaymentManager(wallet, 'base-sepolia');
-      
+
       const history = await paymentManager.getPaymentHistory(5);
 
       expect(Array.isArray(history)).toBe(true);
