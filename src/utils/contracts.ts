@@ -220,159 +220,170 @@ export const IDENTITY_REGISTRY_ABI = [
 ];
 
 /**
- * Get Reputation Registry ABI (ERC-8004 v1.0)
+ * Get Reputation Registry ABI (ERC-8004 Feb 2026)
  *
- * v1.0 uses cryptographic signatures (EIP-191/ERC-1271) for feedback authorization.
- * Key changes:
- * - giveFeedback() with signature-based authorization
- * - On-chain scores (0-100) with tags
- * - revokeFeedback() support
- * - appendResponse() for audit trails
- * - TODO: add tokenOfOwnerByIndex
+ * Feb 2026 KEY CHANGES from Oct 2025:
+ * - REMOVED feedbackAuth parameter - feedback is now permissionless
+ * - ADDED endpoint parameter for endpoint being reviewed
+ * - CHANGED tag1, tag2 from bytes32 to string
+ * - ADDED feedbackIndex to NewFeedback event
+ * - readFeedback returns string tags and feedbackIndex parameter renamed
+ *
+ * Feb 2026 ABI UPDATE:
+ * - CHANGED score (uint8) to value (int128) + valueDecimals (uint8)
+ * - getSummary returns summaryValue (int128) + summaryValueDecimals (uint8)
+ * - readFeedback returns value (int128) + valueDecimals (uint8)
  */
 export const REPUTATION_REGISTRY_ABI = [
-  // Core Functions
+  // Core Functions (Feb 2026 ABI)
   {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "score", "type": "uint8" },
-      { "name": "tag1", "type": "bytes32" },
-      { "name": "tag2", "type": "bytes32" },
-      { "name": "feedbackUri", "type": "string" },
-      { "name": "feedbackHash", "type": "bytes32" },
-      { "name": "feedbackAuth", "type": "bytes" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'value', type: 'int128' }, // CHANGED: uint8 score -> int128 value
+      { name: 'valueDecimals', type: 'uint8' }, // NEW: decimal precision
+      { name: 'tag1', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'tag2', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'endpoint', type: 'string' }, // NEW: endpoint being reviewed
+      { name: 'feedbackURI', type: 'string' },
+      { name: 'feedbackHash', type: 'bytes32' },
     ],
-    "name": "giveFeedback",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'giveFeedback',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "feedbackIndex", "type": "uint64" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'feedbackIndex', type: 'uint64' },
     ],
-    "name": "revokeFeedback",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'revokeFeedback',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "clientAddress", "type": "address" },
-      { "name": "feedbackIndex", "type": "uint64" },
-      { "name": "responseUri", "type": "string" },
-      { "name": "responseHash", "type": "bytes32" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
+      { name: 'responseURI', type: 'string' }, // RENAMED: responseUri -> responseURI
+      { name: 'responseHash', type: 'bytes32' },
     ],
-    "name": "appendResponse",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'appendResponse',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
-  // Read Functions
+  // Read Functions (Feb 2026 ABI)
   {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "clientAddresses", "type": "address[]" },
-      { "name": "tag1", "type": "bytes32" },
-      { "name": "tag2", "type": "bytes32" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddresses', type: 'address[]' },
+      { name: 'tag1', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'tag2', type: 'string' }, // CHANGED: bytes32 -> string
     ],
-    "name": "getSummary",
-    "outputs": [
-      { "name": "count", "type": "uint64" },
-      { "name": "averageScore", "type": "uint8" }
+    name: 'getSummary',
+    outputs: [
+      { name: 'count', type: 'uint64' },
+      { name: 'summaryValue', type: 'int128' }, // CHANGED: uint8 averageScore -> int128 summaryValue
+      { name: 'summaryValueDecimals', type: 'uint8' }, // NEW: decimal precision
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "clientAddress", "type": "address" },
-      { "name": "index", "type": "uint64" }
-    ],
-    "name": "readFeedback",
-    "outputs": [
-      { "name": "score", "type": "uint8" },
-      { "name": "tag1", "type": "bytes32" },
-      { "name": "tag2", "type": "bytes32" },
-      { "name": "isRevoked", "type": "bool" }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "clientAddresses", "type": "address[]" },
-      { "name": "tag1", "type": "bytes32" },
-      { "name": "tag2", "type": "bytes32" },
-      { "name": "includeRevoked", "type": "bool" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
+      { name: 'feedbackIndex', type: 'uint64' },
     ],
-    "name": "readAllFeedback",
-    "outputs": [
-      { "name": "clients", "type": "address[]" },
-      { "name": "scores", "type": "uint8[]" },
-      { "name": "tag1s", "type": "bytes32[]" },
-      { "name": "tag2s", "type": "bytes32[]" },
-      { "name": "revokedStatuses", "type": "bool[]" }
+    name: 'readFeedback',
+    outputs: [
+      { name: 'value', type: 'int128' }, // CHANGED: uint8 score -> int128 value
+      { name: 'valueDecimals', type: 'uint8' }, // NEW: decimal precision
+      { name: 'tag1', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'tag2', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'isRevoked', type: 'bool' },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [{ "name": "agentId", "type": "uint256" }],
-    "name": "getClients",
-    "outputs": [{ "name": "clientList", "type": "address[]" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      { "name": "agentId", "type": "uint256" },
-      { "name": "clientAddress", "type": "address" }
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddresses', type: 'address[]' },
+      { name: 'tag1', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'tag2', type: 'string' }, // CHANGED: bytes32 -> string
+      { name: 'includeRevoked', type: 'bool' },
     ],
-    "name": "getLastIndex",
-    "outputs": [{ "name": "lastIndex", "type": "uint64" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getIdentityRegistry",
-    "outputs": [{ "name": "registry", "type": "address" }],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Events
-  {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "name": "agentId", "type": "uint256" },
-      { "indexed": true, "name": "clientAddress", "type": "address" },
-      { "indexed": false, "name": "score", "type": "uint8" },
-      { "indexed": true, "name": "tag1", "type": "bytes32" },
-      { "indexed": false, "name": "tag2", "type": "bytes32" },
-      { "indexed": false, "name": "feedbackUri", "type": "string" },
-      { "indexed": false, "name": "feedbackHash", "type": "bytes32" }
+    name: 'readAllFeedback',
+    outputs: [
+      { name: 'clients', type: 'address[]' },
+      { name: 'feedbackIndexes', type: 'uint64[]' }, // NEW: feedback indexes
+      { name: 'values', type: 'int128[]' }, // CHANGED: uint8[] scores -> int128[] values
+      { name: 'valueDecimals', type: 'uint8[]' }, // NEW: decimal precisions
+      { name: 'tag1s', type: 'string[]' }, // CHANGED: bytes32[] -> string[]
+      { name: 'tag2s', type: 'string[]' }, // CHANGED: bytes32[] -> string[]
+      { name: 'revokedStatuses', type: 'bool[]' },
     ],
-    "name": "NewFeedback",
-    "type": "event"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "anonymous": false,
-    "inputs": [
-      { "indexed": true, "name": "agentId", "type": "uint256" },
-      { "indexed": true, "name": "clientAddress", "type": "address" },
-      { "indexed": false, "name": "feedbackIndex", "type": "uint64" },
-      { "indexed": true, "name": "responder", "type": "address" },
-      { "indexed": false, "name": "responseUri", "type": "string" },
-      { "indexed": false, "name": "responseHash", "type": "bytes32" }
+    inputs: [{ name: 'agentId', type: 'uint256' }],
+    name: 'getClients',
+    outputs: [{ name: 'clientList', type: 'address[]' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'clientAddress', type: 'address' },
     ],
-    "name": "ResponseAppended",
-    "type": "event"
-  }
+    name: 'getLastIndex',
+    outputs: [{ name: 'lastIndex', type: 'uint64' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getIdentityRegistry',
+    outputs: [{ name: 'registry', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Events (Feb 2026 spec)
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: true, name: 'clientAddress', type: 'address' },
+      { indexed: false, name: 'feedbackIndex', type: 'uint64' }, // NEW
+      { indexed: false, name: 'score', type: 'uint8' },
+      { indexed: true, name: 'tag1', type: 'string' }, // CHANGED: bytes32 -> string
+      { indexed: false, name: 'tag2', type: 'string' }, // CHANGED: bytes32 -> string
+      { indexed: false, name: 'endpoint', type: 'string' }, // NEW
+      { indexed: false, name: 'feedbackURI', type: 'string' }, // RENAMED
+      { indexed: false, name: 'feedbackHash', type: 'bytes32' },
+    ],
+    name: 'NewFeedback',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: true, name: 'clientAddress', type: 'address' },
+      { indexed: false, name: 'feedbackIndex', type: 'uint64' },
+      { indexed: true, name: 'responder', type: 'address' },
+      { indexed: false, name: 'responseURI', type: 'string' }, // RENAMED
+      { indexed: false, name: 'responseHash', type: 'bytes32' },
+    ],
+    name: 'ResponseAppended',
+    type: 'event',
+  },
 ];
 
 /**
@@ -600,21 +611,21 @@ export function getUSDCAddress(network: string): string {
  */
 export const CONTRACT_ADDRESSES = {
   [NetworkConfig.ETHEREUM_SEPOLIA]: {
-    // ERC - 8004 Registries(deployed by Nethermind)
-    identity: '0x8004a6090Cd10A7288092483047B097295Fb8847',
-    reputation: '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E',
+    // Official ERC-8004 Registries (Feb 2026 spec - https://github.com/erc-8004/erc-8004-contracts)
+    identity: '0x8004A818BFB912233c491871b3d84c89A494BD9e',
+    reputation: '0x8004B663056A597Dffe9eCcC1965A193B7388713',
     validation: '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5',
     usdc: '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238',
     treasury: '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
-    // ChaosChain Protocol MVP v0.4.3 (deployed Dec 20, 2025)
-    // Features: Per-worker consensus, Multi-agent attribution, DKG-based scoring
-    // NEW: registerFeedbackAuth() for multi-agent reputation publishing
-    chaos_registry: '0xB5Dba66ae57479190A7723518f8cA7ea8c40de53',
-    chaos_core: '0x6660e8EF6baaAf847519dFd693D0033605b825f5',
-    rewards_distributor: '0xA050527d38Fae9467730412d941560c8706F060A',
-    studio_factory: '0xfEf9d59883854F991E8d009b26BDD8F4ed51A19d',
+    // ChaosChain Protocol v0.4.31 (deployed Jan 28, 2026) - ERC-8004 Feb 2026 ABI
+    // giveFeedback: score (uint8) -> value (int128) + valueDecimals (uint8)
+    // validationResponse: tag (bytes32) -> tag (string)
+    chaos_registry: '0x7F38C1aFFB24F30500d9174ed565110411E42d50',
+    chaos_core: '0x92cBc471D8a525f3Ffb4BB546DD8E93FC7EE67ca',
+    rewards_distributor: '0x4bd7c3b53474Ba5894981031b5a9eF70CEA35e53',
+    studio_factory: '0x54Cbf5fa7d10ECBab4f46D71FAD298A230A16aF6',
     // LogicModules
-    finance_logic: '0x2049f335A812b68aC488d4b687C3B701BF845f5b',
+    prediction_logic: '0xE90CaE8B64458ba796F462AB48d84F6c34aa29a3',
   },
   [NetworkConfig.OPTIMISM_SEPOLIA]: {
     identity_registry: '0x0000000000000000000000000000000000000000', // Not yet deployed

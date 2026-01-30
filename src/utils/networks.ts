@@ -8,9 +8,10 @@ import { NetworkConfig, NetworkInfo, ContractAddresses } from '../types';
  * ERC-8004 v1.0 contract addresses (pre-deployed)
  */
 export const ERC8004_ADDRESSES: Record<string, ContractAddresses> = {
+  // Official ERC-8004 Registries (Feb 2026 spec)
   'ethereum-sepolia': {
-    identity: '0x8004a6090Cd10A7288092483047B097295Fb8847',
-    reputation: '0x8004B8FD1A363aa02fDC07635C0c5F94f6Af5B7E',
+    identity: '0x8004A818BFB912233c491871b3d84c89A494BD9e',
+    reputation: '0x8004B663056A597Dffe9eCcC1965A193B7388713',
     validation: '0x8004CB39f29c09145F24Ad9dDe2A108C1A2cdfC5',
   },
   'base-sepolia': {
@@ -89,7 +90,7 @@ export const NETWORK_INFO: Record<string, NetworkInfo> = {
     },
   },
   '0g-testnet': {
-    chainId: 16600,
+    chainId: 16602, // Updated to match Python SDK (was 16600)
     name: '0G Network Testnet',
     rpcUrl: process.env.ZEROG_TESTNET_RPC_URL || 'https://evmrpc-testnet.0g.ai',
     contracts: ERC8004_ADDRESSES['0g-testnet'],

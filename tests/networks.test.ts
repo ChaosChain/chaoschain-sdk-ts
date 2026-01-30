@@ -27,7 +27,8 @@ describe('Network Configuration', () => {
 
     expect(info).toBeDefined();
     expect(info.chainId).toBe(11155111);
-    expect(info.contracts.identity).toBe('0x8004a6090Cd10A7288092483047B097295Fb8847');
+    // Updated to Feb 2026 ERC-8004 spec addresses
+    expect(info.contracts.identity).toBe('0x8004A818BFB912233c491871b3d84c89A494BD9e');
   });
 
   it('should get contract addresses', () => {
