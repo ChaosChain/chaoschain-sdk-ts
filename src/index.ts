@@ -155,6 +155,10 @@ export {
 // Gateway Client
 export { GatewayClient } from './GatewayClient';
 
+// Studio Client (Direct On-Chain Operations)
+export { StudioClient } from './StudioClient';
+export type { StudioClientConfig } from './StudioClient';
+
 // Workflow Types
 export { WorkflowType, WorkflowState } from './types';
 export type { WorkflowStatus, WorkflowProgress, WorkflowError, GatewayClientConfig } from './types';
