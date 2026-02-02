@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import {
   WorkflowType,
   WorkflowState,
@@ -14,7 +14,6 @@ import {
   GatewayTimeoutError,
   WorkflowFailedError,
 } from './exceptions';
-import { Sign } from 'crypto';
 
 export class GatewayClient {
   private gatewayUrl: string;
@@ -327,6 +326,7 @@ export class GatewayClient {
     const pollInterval = options?.pollInterval || this.pollInterval;
     const startTime = Date.now();
 
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const status = await this.getWorkflow(workflowId);
 

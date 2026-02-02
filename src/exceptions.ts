@@ -1,5 +1,4 @@
-import { error } from 'console';
-import { WorkflowError as WorkflowErrorType } from './types';
+import { WorkflowError as WorkflowErrorType, WorkflowStatus } from './types';
 
 /**
  * Exception classes for the ChaosChain SDK.
@@ -7,8 +6,6 @@ import { WorkflowError as WorkflowErrorType } from './types';
  * This module defines all custom exceptions used throughout the SDK
  * to provide clear error handling and debugging information.
  */
-
-import { WorkflowStatus } from './types';
 
 export class ChaosChainSDKError extends Error {
   public details: Record<string, any>;
@@ -112,7 +109,7 @@ export class GatewayError extends ChaosChainSDKError {
     this.name = 'GatewayError';
     this.statusCode = details?.statusCode;
     this.response = details?.response;
-    //Object.setPrototypeOf(this, GatewayError.prototype);
+    Object.setPrototypeOf(this, GatewayError.prototype);
   }
 }
 
@@ -123,6 +120,7 @@ export class GatewayConnectionError extends GatewayError {
   constructor(message: string) {
     super(message);
     this.name = 'GatewayConnectionError';
+    Object.setPrototypeOf(this, GatewayConnectionError.prototype);
   }
 }
 
@@ -138,6 +136,7 @@ export class GatewayTimeoutError extends GatewayError {
     this.name = 'GatewayTimeoutError';
     this.workflowId = workflowId;
     this.lastStatus = lastStatus;
+    Object.setPrototypeOf(this, GatewayTimeoutError.prototype);
   }
 }
 
@@ -153,5 +152,6 @@ export class WorkflowFailedError extends GatewayError {
     this.name = 'WorkflowFailedError';
     this.workflowId = workflowId;
     this.workflowError = error;
+    Object.setPrototypeOf(this, WorkflowFailedError.prototype);
   }
 }

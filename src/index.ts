@@ -67,8 +67,8 @@ export { IrysStorage as IrysStorageProvider } from './StorageBackends';
 export {
   ChaosChainSDKError,
   AgentRegistrationError,
-  // FeedbackSubmissionError, // Not defined yet
-  // ValidationError as SDKValidationError, // Not defined yet
+  //FeedbackSubmissionError, // Not defined yet
+  ValidationError as SDKValidationError,
   PaymentError,
   StorageError,
   ContractError,
@@ -149,6 +149,24 @@ export {
   // getReputationRegistryABI, // Now exported as const
   // getValidationRegistryABI // Now exported as const
 } from './utils/contracts';
+
+// Gateway Client
+export { GatewayClient } from './GatewayClient';
+
+// Workflow Types
+export { WorkflowType, WorkflowState } from './types';
+export type { WorkflowStatus, WorkflowProgress, WorkflowError, GatewayClientConfig } from './types';
+
+// Gateway Exceptions
+export {
+  GatewayError,
+  GatewayConnectionError,
+  GatewayTimeoutError,
+  WorkflowFailedError,
+} from './exceptions';
+
+// Deprecated Types
+export type { XMTPMessageData, DKGNodeData } from './types';
 
 // ============================================================================
 // Version Info

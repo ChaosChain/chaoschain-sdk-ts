@@ -27,6 +27,9 @@ import {
 } from './types';
 import { PaymentMethod } from './types';
 import { getNetworkInfo, getContractAddresses } from './utils/networks';
+//
+import { GatewayClient } from './GatewayClient';
+import type { WorkflowStatus, ScoreSubmissionMode } from './types';
 
 /**
  * Main ChaosChain SDK Class - Complete TypeScript implementation
@@ -56,6 +59,9 @@ export class ChaosChainSDK {
   public googleAP2?: GoogleAP2Integration;
   public a2aX402Extension?: A2AX402Extension;
   public processIntegrity?: ProcessIntegrity;
+
+  // Gateway client for workflow submission (optional)
+  public gateway: GatewayClient | null = null;
 
   // Configuration
   public readonly agentName: string;
@@ -168,6 +174,12 @@ export class ChaosChainSDK {
         this.storageBackend as any,
         this.computeProvider as any
       );
+    }
+
+    // Initialize Gateway client (if config provided)
+    if (config.gatewayConfig) {
+      this.gateway = new GatewayClient(config.gatewayConfig);
+      console.log(`🌐 Gateway client initialized: ${config.gatewayConfig.gatewayUrl}`);
     }
 
     console.log(`🚀 ChaosChain SDK initialized for ${this.agentName}`);
@@ -760,5 +772,103 @@ export class ChaosChainSDK {
           ? (this.storageBackend as AutoStorageManager).getAvailableBackends()
           : [this.storageBackend.constructor.name],
     };
+  }
+
+  /**
+   * Check if Gateway is configured.
+   */
+  isGatewayEnabled(): boolean {
+    return this.gateway !== null;
+  }
+
+  /**
+   * Get Gateway client instance.
+   * @throws Error if Gateway is not configured
+   */
+  getGateway(): GatewayClient {
+    if (!this.gateway) {
+      throw new Error(`Gateway not configured pass gatewayConfig to SDK constructor`);
+    }
+    return this.gateway;
+  }
+
+  /**
+   * Submit work via Gateway.
+   *
+   * The Gateway handles XMTP, DKG, Arweave archival, and on-chain submission.
+   */
+  async submitWorkViaGateway(
+    studioAddress: string,
+    epoch: number,
+    agentAddress: string,
+    dataHash: string,
+    threadRoot: string,
+    evidenceRoot: string,
+    evidenceContent: Buffer | string,
+    signerAddress: string
+  ): Promise<WorkflowStatus> {
+    return this.getGateway().submitWork(
+      studioAddress,
+      epoch,
+      agentAddress,
+      dataHash,
+      threadRoot,
+      evidenceRoot,
+      evidenceContent,
+      signerAddress
+    );
+  }
+
+  /**
+   * Submit score via Gateway.
+   */
+  async submitScoreViaGateway(
+    studioAddress: string,
+    epoch: number,
+    validatorAddress: string,
+    dataHash: string,
+    scores: number[],
+    signerAddress: string,
+    options?: {
+      workerAddress?: string;
+      salt?: string;
+      mode?: ScoreSubmissionMode;
+    }
+  ): Promise<WorkflowStatus> {
+    return this.getGateway().submitScore(
+      studioAddress,
+      epoch,
+      validatorAddress,
+      dataHash,
+      scores,
+      signerAddress,
+      options
+    );
+  }
+
+  /**
+   * Close epoch via Gateway.
+   * WARNING: This is economically final and cannot be undone.
+   */
+  async closeEpochViaGateway(
+    studioAddress: string,
+    epoch: number,
+    signerAddress: string
+  ): Promise<WorkflowStatus> {
+    return this.getGateway().closeEpoch(studioAddress, epoch, signerAddress);
+  }
+
+  /**
+   * Wait for workflow completion.
+   */
+  async waitWorkflow(
+    workflowId: string,
+    options?: {
+      maxWait?: number;
+      pollInterval?: number;
+      onProgress?: (status: WorkflowStatus) => void;
+    }
+  ): Promise<WorkflowStatus> {
+    return this.getGateway().waitForCompletion(workflowId, options);
   }
 }
