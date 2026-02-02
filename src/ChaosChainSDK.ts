@@ -29,6 +29,7 @@ import { PaymentMethod } from './types';
 import { getNetworkInfo, getContractAddresses } from './utils/networks';
 //
 import { GatewayClient } from './GatewayClient';
+import { StudioClient } from './StudioClient';
 import type { WorkflowStatus, ScoreSubmissionMode } from './types';
 
 /**
@@ -62,6 +63,9 @@ export class ChaosChainSDK {
 
   // Gateway client for workflow submission (optional)
   public gateway: GatewayClient | null = null;
+
+  // Studio client for direct on-chain operations
+  public studio: StudioClient;
 
   // Configuration
   public readonly agentName: string;
@@ -181,6 +185,13 @@ export class ChaosChainSDK {
       this.gateway = new GatewayClient(config.gatewayConfig);
       console.log(`🌐 Gateway client initialized: ${config.gatewayConfig.gatewayUrl}`);
     }
+
+    // Initialize Studio client for direct on-chain operations
+    this.studio = new StudioClient({
+      provider: this.provider,
+      signer: this.walletManager.getWallet(),
+      network: typeof config.network === 'string' ? config.network : config.network,
+    });
 
     console.log(`🚀 ChaosChain SDK initialized for ${this.agentName}`);
     console.log(`   Network: ${this.network}`);
@@ -870,5 +881,49 @@ export class ChaosChainSDK {
     }
   ): Promise<WorkflowStatus> {
     return this.getGateway().waitForCompletion(workflowId, options);
+  }
+
+  // ============================================================================
+  // Studio Direct On-Chain Methods
+  // ============================================================================
+
+  /**
+   * Create a new Studio on ChaosChain.
+   * @see StudioClient.createStudio for full documentation
+   */
+  async createStudio(
+    name: string,
+    logicModuleAddress: string
+  ): Promise<{ proxyAddress: string; studioId: bigint }> {
+    return this.studio.createStudio(name, logicModuleAddress);
+  }
+
+  /**
+   * Register agent with a Studio.
+   * @see StudioClient.registerWithStudio for full documentation
+   */
+  async registerWithStudio(
+    studioAddress: string,
+    agentId: string,
+    role: number,
+    stakeAmount?: bigint
+  ): Promise<string> {
+    return this.studio.registerWithStudio(studioAddress, agentId, role, stakeAmount);
+  }
+
+  /**
+   * Get pending rewards for an account.
+   * @see StudioClient.getPendingRewards for full documentation
+   */
+  async getStudioPendingRewards(studioAddress: string, account: string): Promise<bigint> {
+    return this.studio.getPendingRewards(studioAddress, account);
+  }
+
+  /**
+   * Withdraw pending rewards from a Studio.
+   * @see StudioClient.withdrawRewards for full documentation
+   */
+  async withdrawStudioRewards(studioAddress: string): Promise<string> {
+    return this.studio.withdrawRewards(studioAddress);
   }
 }
