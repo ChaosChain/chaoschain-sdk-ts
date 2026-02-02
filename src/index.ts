@@ -145,9 +145,11 @@ export {
   IDENTITY_REGISTRY_ABI,
   REPUTATION_REGISTRY_ABI,
   VALIDATION_REGISTRY_ABI,
-  // getIdentityRegistryABI, // Now exported as const
-  // getReputationRegistryABI, // Now exported as const
-  // getValidationRegistryABI // Now exported as const
+  // ChaosChain Protocol ABIs
+  CHAOS_CORE_ABI,
+  STUDIO_PROXY_ABI,
+  REWARDS_DISTRIBUTOR_ABI,
+  STUDIO_FACTORY_ABI,
 } from './utils/contracts';
 
 // Gateway Client

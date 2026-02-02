@@ -678,6 +678,244 @@ export function getContractAddresses(network: string) {
   return CONTRACT_ADDRESSES[network as keyof typeof CONTRACT_ADDRESSES];
 }
 
+// ===========================================================================
+// ChaosChain Protocol ABIs (Extracted from Python SDK core_sdk.py)
+// ===========================================================================
+
+/**
+ * ChaosCore ABI - Factory for creating Studios
+ *
+ * Methods:
+ * - createStudio(name, logicModule) -> (proxy, studioId)
+ */
+export const CHAOS_CORE_ABI = [
+  {
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'logicModule', type: 'address' },
+    ],
+    name: 'createStudio',
+    outputs: [
+      { name: 'proxy', type: 'address' },
+      { name: 'studioId', type: 'uint256' },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'studioId', type: 'uint256' },
+      { indexed: false, name: 'proxy', type: 'address' },
+      { indexed: false, name: 'logicModule', type: 'address' },
+      { indexed: true, name: 'creator', type: 'address' },
+    ],
+    name: 'StudioCreated',
+    type: 'event',
+  },
+] as const;
+
+/**
+ * StudioProxy ABI - Main Studio contract for work submission and scoring
+ *
+ * Methods:
+ * - registerAgent(agentId, role) [payable] - Register agent with stake
+ * - submitWork(dataHash, threadRoot, evidenceRoot, feedbackAuth) - Submit single-agent work
+ * - submitWorkMultiAgent(dataHash, threadRoot, evidenceRoot, participants, contributionWeights, evidenceCID) - Multi-agent work
+ * - commitScore(dataHash, commitment) - Commit phase of commit-reveal
+ * - revealScore(dataHash, scoreVector, salt) - Reveal phase
+ * - getWithdrawableBalance(account) -> balance - Query pending rewards
+ * - withdrawRewards() - Withdraw pending rewards
+ */
+export const STUDIO_PROXY_ABI = [
+  // Agent Registration
+  {
+    inputs: [
+      { name: 'agentId', type: 'uint256' },
+      { name: 'role', type: 'uint8' },
+    ],
+    name: 'registerAgent',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  // Work Submission (single agent - feedbackAuth deprecated in Jan 2026)
+  {
+    inputs: [
+      { name: 'dataHash', type: 'bytes32' },
+      { name: 'threadRoot', type: 'bytes32' },
+      { name: 'evidenceRoot', type: 'bytes32' },
+      { name: 'feedbackAuth', type: 'bytes' }, // DEPRECATED in Jan 2026
+    ],
+    name: 'submitWork',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Multi-Agent Work Submission (Jan 2026 spec - no feedbackAuth)
+  {
+    inputs: [
+      { name: 'dataHash', type: 'bytes32' },
+      { name: 'threadRoot', type: 'bytes32' },
+      { name: 'evidenceRoot', type: 'bytes32' },
+      { name: 'participants', type: 'address[]' },
+      { name: 'contributionWeights', type: 'uint16[]' },
+      { name: 'evidenceCID', type: 'string' },
+    ],
+    name: 'submitWorkMultiAgent',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Score Commit-Reveal
+  {
+    inputs: [
+      { name: 'dataHash', type: 'bytes32' },
+      { name: 'commitment', type: 'bytes32' },
+    ],
+    name: 'commitScore',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { name: 'dataHash', type: 'bytes32' },
+      { name: 'scoreVector', type: 'bytes' },
+      { name: 'salt', type: 'bytes32' },
+    ],
+    name: 'revealScore',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Rewards
+  {
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'getWithdrawableBalance',
+    outputs: [{ name: 'balance', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'withdrawRewards',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // FeedbackAuth Registration (DEPRECATED in Jan 2026)
+  {
+    inputs: [
+      { name: 'dataHash', type: 'bytes32' },
+      { name: 'feedbackAuth', type: 'bytes' },
+    ],
+    name: 'registerFeedbackAuth',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Events
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'agentId', type: 'uint256' },
+      { indexed: true, name: 'agentAddress', type: 'address' },
+      { indexed: false, name: 'role', type: 'uint8' },
+      { indexed: false, name: 'stake', type: 'uint256' },
+    ],
+    name: 'AgentRegistered',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'dataHash', type: 'bytes32' },
+      { indexed: true, name: 'submitter', type: 'address' },
+      { indexed: false, name: 'threadRoot', type: 'bytes32' },
+      { indexed: false, name: 'evidenceRoot', type: 'bytes32' },
+    ],
+    name: 'WorkSubmitted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'dataHash', type: 'bytes32' },
+      { indexed: true, name: 'validator', type: 'address' },
+      { indexed: false, name: 'commitment', type: 'bytes32' },
+    ],
+    name: 'ScoreCommitted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'dataHash', type: 'bytes32' },
+      { indexed: true, name: 'validator', type: 'address' },
+      { indexed: false, name: 'scoreVector', type: 'bytes' },
+    ],
+    name: 'ScoreRevealed',
+    type: 'event',
+  },
+] as const;
+
+/**
+ * RewardsDistributor ABI - Manages epoch closure and reward distribution
+ *
+ * Methods:
+ * - closeEpoch(studio, epoch) - Close an epoch and trigger reward distribution
+ */
+export const REWARDS_DISTRIBUTOR_ABI = [
+  {
+    inputs: [
+      { name: 'studio', type: 'address' },
+      { name: 'epoch', type: 'uint64' },
+    ],
+    name: 'closeEpoch',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  // Events
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'studio', type: 'address' },
+      { indexed: true, name: 'epoch', type: 'uint64' },
+      { indexed: false, name: 'totalRewards', type: 'uint256' },
+    ],
+    name: 'EpochClosed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, name: 'studio', type: 'address' },
+      { indexed: true, name: 'recipient', type: 'address' },
+      { indexed: false, name: 'amount', type: 'uint256' },
+    ],
+    name: 'RewardsDistributed',
+    type: 'event',
+  },
+] as const;
+
+/**
+ * StudioFactory ABI - Factory for creating Studios (alternative to ChaosCore)
+ */
+export const STUDIO_FACTORY_ABI = [
+  {
+    inputs: [
+      { name: 'name', type: 'string' },
+      { name: 'logicModule', type: 'address' },
+    ],
+    name: 'createStudio',
+    outputs: [{ name: 'proxy', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const;
+
 /**
  * Common contract errors
  */
