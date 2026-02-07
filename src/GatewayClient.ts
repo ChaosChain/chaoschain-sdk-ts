@@ -167,7 +167,7 @@ export class GatewayClient {
     evidenceContent: Buffer | string,
     signerAddress: string
   ): Promise<WorkflowStatus> {
-    const evidenceBase64 = Buffer.isBuffer(evidenceContent)
+    const evidenceContentBase64 = Buffer.isBuffer(evidenceContent)
       ? evidenceContent.toString('base64')
       : Buffer.from(evidenceContent, 'utf-8').toString('base64');
 
@@ -178,7 +178,7 @@ export class GatewayClient {
       data_hash: dataHash,
       thread_root: threadRoot,
       evidence_root: evidenceRoot,
-      evidence_base64: evidenceBase64,
+      evidence_content: evidenceContentBase64,
       signer_address: signerAddress,
     };
 

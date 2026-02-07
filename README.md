@@ -473,7 +473,8 @@ interface ChaosChainSDKConfig {
   privateKey?: string; // Wallet private key
   mnemonic?: string; // Or HD wallet mnemonic
   rpcUrl?: string; // Custom RPC URL (optional)
-  gatewayConfig?: { gatewayUrl: string }; // ChaosChain Gateway config (for Studios)
+  gatewayUrl?: string; // ChaosChain Gateway URL (for Studios)
+  gatewayConfig?: { gatewayUrl: string }; // Advanced Gateway config (timeouts, polling)
   enablePayments?: boolean; // Enable x402 payments (default: true)
   enableStorage?: boolean; // Enable storage (default: true)
   storageProvider?: StorageProvider; // Custom storage provider
@@ -515,6 +516,64 @@ interface ChaosChainSDKConfig {
 | **Wallet**     | `getAddress()`                                  | Get wallet address           |
 |                | `getBalance()`                                  | Get native balance           |
 |                | `signMessage(message)`                          | Sign message                 |
+
+### Mandates Core (Optional)
+
+Mandates are deterministic ERC-8004 agreements. The SDK exposes `MandateManager` if
+`mandates-core` is installed.
+
+```bash
+npm install mandates-core
+```
+
+```typescript
+import { ChaosChainSDK } from '@chaoschain/sdk';
+
+const sdk = new ChaosChainSDK({
+  agentName: 'ServerAgent',
+  agentDomain: 'server.example.com',
+  agentRole: 'server',
+  network: 'base-sepolia',
+});
+
+const core = sdk.buildMandateCore('swap@1', {
+  chainId: sdk.getNetworkInfo().chainId,
+  tokenIn: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  tokenOut: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+  amountIn: '100000000',
+  minOut: '165000',
+  recipient: sdk.getAddress(),
+  deadline: '2025-12-31T00:00:00Z',
+});
+
+const mandate = sdk.createMandate({
+  intent: 'Swap 100 USDC for WBTC on Base Sepolia',
+  core,
+  deadline: '2025-12-31T00:10:00Z',
+  client: '0xClientAddress',
+});
+
+sdk.signMandateAsServer(mandate);
+```
+
+### Studio Manager (Task Orchestration)
+
+`StudioManager` provides a thin task orchestration helper (broadcast, bids, assignment).
+It requires a messenger adapter (Gateway/XMTP or custom).
+
+```typescript
+import { StudioManager } from '@chaoschain/sdk';
+
+const studioManager = new StudioManager({
+  sdk,
+  messenger: {
+    sendMessage: async ({ toAgent, messageType, content }) => {
+      // Integrate with your messaging layer
+      return `${messageType}:${toAgent}`;
+    },
+  },
+});
+```
 
 ## Examples
 

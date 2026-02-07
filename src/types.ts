@@ -356,6 +356,7 @@ export interface ChaosChainSDKConfig {
   facilitatorMode?: 'managed' | 'decentralized';
   agentId?: string; // ERC-8004 tokenId (e.g., '8004#123')
   // Gateway Client Configuration
+  gatewayUrl?: string;
   gatewayConfig?: GatewayClientConfig;
 }
 

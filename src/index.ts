@@ -33,6 +33,7 @@ export type {
 } from './X402PaymentManager';
 export { PaymentManager } from './PaymentManager';
 export { X402Server } from './X402Server';
+export { MandateManager } from './MandateManager';
 
 // ============================================================================
 // Advanced Integrations
@@ -153,6 +154,8 @@ export { GatewayClient } from './GatewayClient';
 // Studio Client (Direct On-Chain Operations)
 export { StudioClient } from './StudioClient';
 export type { StudioClientConfig } from './StudioClient';
+export { StudioManager } from './StudioManager';
+export type { Task, WorkerBid, StudioManagerConfig } from './StudioManager';
 
 // Workflow Types
 export { WorkflowType, WorkflowState } from './types';

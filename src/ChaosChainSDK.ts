@@ -13,6 +13,7 @@ import { GoogleAP2Integration, GoogleAP2IntegrationResult } from './GoogleAP2Int
 import { A2AX402Extension } from './A2AX402Extension';
 import { ProcessIntegrity } from './ProcessIntegrity';
 import { AutoStorageManager, StorageBackend } from './StorageBackends';
+import { MandateManager } from './MandateManager';
 // import { IPFSLocalStorage } from './providers/storage/IPFSLocal'; // Not used
 import {
   ChaosChainSDKConfig,
@@ -60,6 +61,7 @@ export class ChaosChainSDK {
   public googleAP2?: GoogleAP2Integration;
   public a2aX402Extension?: A2AX402Extension;
   public processIntegrity?: ProcessIntegrity;
+  public mandateManager?: MandateManager;
 
   // Gateway client for workflow submission (optional)
   public gateway: GatewayClient | null = null;
@@ -168,6 +170,18 @@ export class ChaosChainSDK {
       );
     }
 
+    // Initialize mandates-core (optional)
+    try {
+      this.mandateManager = new MandateManager(
+        this.agentName,
+        this.walletManager,
+        this.networkInfo.chainId
+      );
+    } catch (error) {
+      console.warn(`⚠️ MandateManager unavailable: ${String(error)}`);
+      this.mandateManager = undefined;
+    }
+
     // Initialize compute provider (if provided)
     this.computeProvider = config.computeProvider;
 
@@ -181,9 +195,10 @@ export class ChaosChainSDK {
     }
 
     // Initialize Gateway client (if config provided)
-    if (config.gatewayConfig) {
-      this.gateway = new GatewayClient(config.gatewayConfig);
-      console.log(`🌐 Gateway client initialized: ${config.gatewayConfig.gatewayUrl}`);
+    if (config.gatewayConfig || config.gatewayUrl) {
+      const gatewayConfig = config.gatewayConfig || { gatewayUrl: config.gatewayUrl! };
+      this.gateway = new GatewayClient(gatewayConfig);
+      console.log(`🌐 Gateway client initialized: ${gatewayConfig.gatewayUrl}`);
     }
 
     // Initialize Studio client for direct on-chain operations
@@ -881,6 +896,54 @@ export class ChaosChainSDK {
     }
   ): Promise<WorkflowStatus> {
     return this.getGateway().waitForCompletion(workflowId, options);
+  }
+
+  // ============================================================================
+  // Mandates Core (optional)
+  // ============================================================================
+
+  buildMandateCore(kind: string, payload: Record<string, unknown>, baseUrl?: string) {
+    if (!this.mandateManager) {
+      throw new Error('MandateManager not available. Install mandates-core.');
+    }
+    return this.mandateManager.buildCore(kind, payload, baseUrl);
+  }
+
+  createMandate(params: {
+    intent: string;
+    core: Record<string, unknown>;
+    deadline: string;
+    client: string;
+    server?: string;
+    version?: string;
+    mandateId?: string;
+    createdAt?: string;
+  }) {
+    if (!this.mandateManager) {
+      throw new Error('MandateManager not available. Install mandates-core.');
+    }
+    return this.mandateManager.createMandate(params);
+  }
+
+  signMandateAsServer(mandate: any, privateKey?: string) {
+    if (!this.mandateManager) {
+      throw new Error('MandateManager not available. Install mandates-core.');
+    }
+    return this.mandateManager.signAsServer(mandate, privateKey);
+  }
+
+  signMandateAsClient(mandate: any, privateKey: string) {
+    if (!this.mandateManager) {
+      throw new Error('MandateManager not available. Install mandates-core.');
+    }
+    return this.mandateManager.signAsClient(mandate, privateKey);
+  }
+
+  verifyMandate(mandate: any) {
+    if (!this.mandateManager) {
+      throw new Error('MandateManager not available. Install mandates-core.');
+    }
+    return this.mandateManager.verify(mandate);
   }
 
   // ============================================================================
