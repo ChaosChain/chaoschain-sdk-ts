@@ -174,7 +174,7 @@ describe('GatewayClient', () => {
       );
 
       const callArgs = mockedAxios.mock.calls[0][0] as unknown as { data: Record<string, any> };
-      expect(callArgs.data.evidence_base64).toBe(buffer.toString('base64'));
+      expect(callArgs.data.evidence_content).toBe(buffer.toString('base64'));
     });
   });
 

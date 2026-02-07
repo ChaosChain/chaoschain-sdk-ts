@@ -473,7 +473,8 @@ interface ChaosChainSDKConfig {
   privateKey?: string; // Wallet private key
   mnemonic?: string; // Or HD wallet mnemonic
   rpcUrl?: string; // Custom RPC URL (optional)
-  gatewayConfig?: { gatewayUrl: string }; // ChaosChain Gateway config (for Studios)
+  gatewayUrl?: string; // ChaosChain Gateway URL (for Studios)
+  gatewayConfig?: { gatewayUrl: string }; // Advanced Gateway config (timeouts, polling)
   enablePayments?: boolean; // Enable x402 payments (default: true)
   enableStorage?: boolean; // Enable storage (default: true)
   storageProvider?: StorageProvider; // Custom storage provider

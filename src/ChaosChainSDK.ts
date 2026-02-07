@@ -195,9 +195,10 @@ export class ChaosChainSDK {
     }
 
     // Initialize Gateway client (if config provided)
-    if (config.gatewayConfig) {
-      this.gateway = new GatewayClient(config.gatewayConfig);
-      console.log(`🌐 Gateway client initialized: ${config.gatewayConfig.gatewayUrl}`);
+    if (config.gatewayConfig || config.gatewayUrl) {
+      const gatewayConfig = config.gatewayConfig || { gatewayUrl: config.gatewayUrl! };
+      this.gateway = new GatewayClient(gatewayConfig);
+      console.log(`🌐 Gateway client initialized: ${gatewayConfig.gatewayUrl}`);
     }
 
     // Initialize Studio client for direct on-chain operations
