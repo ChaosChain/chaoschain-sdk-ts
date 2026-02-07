@@ -46,7 +46,9 @@ export class StudioManager {
     this.messenger = config.messenger;
 
     if (!this.messenger) {
-      console.warn('⚠️ XMTP not available. Task broadcasting will be limited.');
+      console.warn(
+        `⚠️ XMTP not available for ${this.sdk.agentName}. Task broadcasting will be limited.`
+      );
     }
   }
 

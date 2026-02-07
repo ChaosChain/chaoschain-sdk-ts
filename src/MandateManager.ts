@@ -59,7 +59,7 @@ export class MandateManager {
     this.chainId = chainId;
     this.agentCaip10 = this.toCaip10(this.walletManager.getAddress());
     this.mandatesCore = loadMandatesCore();
-    console.log('📜 mandates-core ready (deterministic mandates)');
+    console.log(`📜 mandates-core ready (deterministic mandates) for ${this.agentName}`);
   }
 
   get agent_caip10(): string {
