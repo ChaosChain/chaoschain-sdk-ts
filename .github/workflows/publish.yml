@@ -1,3 +1,6 @@
+# Publish to npm via Trusted Publishing (OIDC). Requires:
+# - npm: package Trusted Publisher set on npmjs.com (GitHub Actions, this repo, workflow filename: publish.yml)
+# - Node 22.14+ for npm CLI 11.5.1+ (OIDC support)
 name: Publish to npm
 
 on:
@@ -21,8 +24,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'   # Node 22.14+ required for npm Trusted Publishing (npm 11.5.1+)
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify Node and npm versions
+        run: |
+          node -v
+          npm -v
 
       - name: Install dependencies
         run: npm ci
@@ -35,3 +43,8 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --access public
+        env:
+          # Trusted Publishing (OIDC): leave NODE_AUTH_TOKEN unset so npm uses OIDC.
+          # If OIDC fails (e.g. Trusted Publisher not set for this repo/workflow), set
+          # NPM_TOKEN to an Automation token and it will be used instead.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
