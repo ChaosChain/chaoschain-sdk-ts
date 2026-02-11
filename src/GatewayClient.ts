@@ -157,25 +157,19 @@ export class GatewayClient {
       const data = error.response.data as Record<string, any>;
       const message = data?.error || data?.message || 'Unknown error from Gateway';
       const classification = this._classifyStatusCode(error.response.status);
-      const gatewayError = new GatewayError(`Gateway returned error: ${message}`, {
+      return new GatewayError(`Gateway returned error: ${message}`, {
         statusCode: error.response.status,
         response: data,
         category: classification.category,
         retryable: classification.retryable,
       });
-      (gatewayError as any).category = classification.category;
-      (gatewayError as any).retryable = classification.retryable;
-      return gatewayError;
     }
 
     const classification = this._classifyStatusCode(undefined);
-    const unknownError = new GatewayError(`Gateway request failed: ${error.message}`, {
+    return new GatewayError(`Gateway request failed: ${error.message}`, {
       category: classification.category,
       retryable: classification.retryable,
     });
-    (unknownError as any).category = classification.category;
-    (unknownError as any).retryable = classification.retryable;
-    return unknownError;
   }
 
   private _getRetryDelayMs(attempt: number): number {

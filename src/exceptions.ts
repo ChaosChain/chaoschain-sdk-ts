@@ -98,17 +98,31 @@ export class AuthenticationError extends ChaosChainSDKError {
 }
 
 /**
+ * Options passed when constructing a GatewayError (statusCode, response, category, retryable).
+ */
+export interface GatewayErrorDetails {
+  statusCode?: number;
+  response?: Record<string, any>;
+  category?: 'transient' | 'permanent' | 'auth' | 'unknown';
+  retryable?: boolean;
+}
+
+/**
  * Base error from Gateway API.
  */
 export class GatewayError extends ChaosChainSDKError {
   public readonly statusCode?: number;
   public readonly response?: Record<string, any>;
+  public readonly category?: 'transient' | 'permanent' | 'auth' | 'unknown';
+  public readonly retryable?: boolean;
 
-  constructor(message: string, details?: { statusCode?: number; response?: Record<string, any> }) {
+  constructor(message: string, details?: GatewayErrorDetails) {
     super(message, details || {});
     this.name = 'GatewayError';
     this.statusCode = details?.statusCode;
     this.response = details?.response;
+    this.category = details?.category;
+    this.retryable = details?.retryable;
     Object.setPrototypeOf(this, GatewayError.prototype);
   }
 }

@@ -120,9 +120,9 @@ describe('ChaosAgent', () => {
       const agent = new ChaosAgent(addresses, signer, provider);
 
       expect(agent).toBeDefined();
-      expect(addresses.identity).toBe('0x8004AA63c570c570eBF15376c0dB199918BFe9Fb');
-      expect(addresses.reputation).toBe('0x8004bd8daB57f14Ed299135749a5CB5c42d341BF');
-      expect(addresses.validation).toBe('0x8004C269D0A5647E51E121FeB226200ECE932d55');
+      expect(addresses.identity).toBe('0x8004A818BFB912233c491871b3d84c89A494BD9e');
+      expect(addresses.reputation).toBe('0x8004B663056A597Dffe9eCcC1965A193B7388713');
+      expect(addresses.validation).toBe('0x0000000000000000000000000000000000000000');
     });
 
     it('should use correct network for Linea Sepolia', () => {

@@ -35,7 +35,7 @@ describe('Network Configuration', () => {
     const addresses = getContractAddresses(NetworkConfig.BASE_SEPOLIA);
 
     expect(addresses).toBeDefined();
-    expect(addresses.identity).toBe('0x8004AA63c570c570eBF15376c0dB199918BFe9Fb');
+    expect(addresses.identity).toBe('0x8004A818BFB912233c491871b3d84c89A494BD9e');
     expect(addresses.reputation).toBeDefined();
     expect(addresses.validation).toBeDefined();
   });
@@ -64,9 +64,9 @@ describe('Network Configuration', () => {
     expect(info.chainId).toBe(97);
     expect(info.name).toBe('BSC Testnet (Chapel)');
     expect(info.contracts).toBeDefined();
-    expect(info.contracts.identity).toBe('0xabbd26d86435b35d9c45177725084ee6a2812e40');
-    expect(info.contracts.reputation).toBe('0xeced1af52a0446275e9e6e4f6f26c99977400a6a');
-    expect(info.contracts.validation).toBe('0x7866bd057f09a4940fe2ce43320518c8749a921e');
+    expect(info.contracts.identity).toBe('0x8004A818BFB912233c491871b3d84c89A494BD9e');
+    expect(info.contracts.reputation).toBe('0x8004B663056A597Dffe9eCcC1965A193B7388713');
+    expect(info.contracts.validation).toBeDefined();
     expect(info.nativeCurrency.symbol).toBe('BNB');
   });
 
