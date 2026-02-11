@@ -259,7 +259,14 @@ await sdk.requestValidation({
 });
 ```
 
-**Pre-deployed addresses** (ERC-8004 registries):
+**Deterministic deployment**: ERC-8004 registries use the same contract addresses across chains where applicable:
+
+- **Mainnets**: All supported mainnets (Ethereum, Base, Polygon, Arbitrum, Celo, Gnosis, Scroll, Taiko, Monad, BSC) share the same **Identity** and **Reputation** registry addresses. Validation registry is not deployed on mainnets (—).
+- **Testnets (shared)**: Base Sepolia, Polygon Amoy, Arbitrum Testnet, Celo Testnet, Scroll Testnet, Monad Testnet, BSC Testnet, and Ethereum Sepolia use the same **Identity** and **Reputation** addresses. Ethereum Sepolia also has a **Validation** registry at a fixed address.
+- **Chain-specific testnets**: Linea Sepolia, Hedera Testnet, and 0G Testnet have their own deployed registry addresses.
+- **Not yet deployed**: Optimism Sepolia and Mode Testnet are in the SDK with zero addresses until registries are live.
+
+**Pre-deployed addresses** (ERC-8004 registries; source of truth: `src/utils/networks.ts`):
 
 | Network              | IdentityRegistry | ReputationRegistry | ValidationRegistry |
 | -------------------- | ---------------- | ------------------ | ------------------ |
@@ -285,7 +292,7 @@ await sdk.requestValidation({
 | BSC Mainnet          | 0x8004A169FB4a3325136EB29fA0ceB6D2e539a432 | 0x8004BAa17C55a88189AE136b182e5fdA19dE9b63 | — |
 | BSC Testnet          | 0x8004A818BFB912233c491871b3d84c89A494BD9e | 0x8004B663056A597Dffe9eCcC1965A193B7388713 | — |
 
-**Note**: You can retrieve the active network’s addresses at runtime via `sdk.getNetworkInfo().contracts`.
+**Note**: Retrieve the active network's addresses at runtime via `sdk.getNetworkInfo().contracts`.
 
 ### **x402 Crypto Payments**
 
@@ -313,7 +320,7 @@ console.log(`Amount: ${costs.amount}, Fee: ${costs.fee}, Total: ${costs.total}`)
 - ✅ Uses EIP-3009 `transferWithAuthorization` via a facilitator
 - ✅ Generates HTTP 402 payment requirements and headers
 - ✅ USDC support on supported networks
-- ⚠️ Provide `facilitatorUrl` (and optional `facilitatorApiKey`) for production
+- **Default facilitator**: `https://facilitator.chaoscha.in` (override with `facilitatorUrl` in config or `CC_FACILITATOR_URL` env). Provide `facilitatorApiKey` when required by your facilitator.
 
 ### **Storage (Gateway-First)**
 
@@ -1006,7 +1013,7 @@ The SDK is optimized for minimal bundle size:
 
 - **Core SDK**: ~80KB minified + gzipped
 - **Tree-shakeable**: Import only what you need
-- **Zero dependencies** in production (ethers, axios, dotenv, zod)
+- **Minimal runtime deps**: `ethers`, `axios` (and optional storage/IPFS as needed)
 
 ```typescript
 // Import only what you need

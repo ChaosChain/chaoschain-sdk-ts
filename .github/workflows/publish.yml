@@ -5,10 +5,13 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write   # Required for OIDC (npm Trusted Publishing)
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,5 +30,3 @@ jobs:
 
       - name: Publish to npm
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
