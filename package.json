@@ -1,6 +1,6 @@
 {
   "name": "@chaoschain/sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "TypeScript SDK for building verifiable AI agents on ChaosChain",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
