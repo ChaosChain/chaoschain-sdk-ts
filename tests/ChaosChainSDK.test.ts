@@ -116,7 +116,7 @@ describe('ChaosChainSDK', () => {
       }).toThrow();
     });
 
-    it('should throw when accessing gateway without gatewayConfig', () => {
+    it('should provide gateway by default (gateway.chaoscha.in) when no gatewayConfig', () => {
       const sdk = new ChaosChainSDK({
         agentName: 'TestAgent',
         agentDomain: 'test.example.com',
@@ -125,7 +125,7 @@ describe('ChaosChainSDK', () => {
         privateKey: testPrivateKey,
       });
 
-      expect(() => sdk.getGateway()).toThrow();
+      expect(sdk.getGateway()).toBeDefined();
     });
   });
 
