@@ -210,10 +210,10 @@ export class X402PaymentManager {
    */
   private getTreasuryAddress(network: NetworkConfig): string {
     const treasuries: Record<string, string> = {
-      'base-sepolia': '0x8004AA63c570c570eBF15376c0dB199918BFe9Fb',
-      'ethereum-sepolia': '0x8004a6090Cd10A7288092483047B097295Fb8847',
-      'optimism-sepolia': '0x8004a6090Cd10A7288092483047B097295Fb8847',
-      'linea-sepolia': '0x8004aa7C931bCE1233973a0C6A667f73F66282e7',
+      'base-sepolia': '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
+      'ethereum-sepolia': '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
+      'optimism-sepolia': '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
+      'linea-sepolia': '0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70',
     };
 
     return treasuries[network] || treasuries['base-sepolia'];

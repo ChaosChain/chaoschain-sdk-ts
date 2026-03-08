@@ -263,14 +263,11 @@ export class ChaosChainSDK {
       );
     }
 
-    // Initialize Gateway client (if config provided)
-    if (config.gatewayConfig || config.gatewayUrl) {
-      const gatewayConfig = config.gatewayConfig || { gatewayUrl: config.gatewayUrl! };
-      this.gateway = new GatewayClient(gatewayConfig);
-      console.log(
-        `🌐 Gateway client initialized: ${gatewayConfig.baseUrl || gatewayConfig.gatewayUrl || 'https://gateway.chaoscha.in'}`
-      );
-    }
+    // Initialize Gateway client (default: https://gateway.chaoscha.in when no config passed)
+    const gatewayConfig = config.gatewayConfig ?? (config.gatewayUrl ? { gatewayUrl: config.gatewayUrl } : {});
+    this.gateway = new GatewayClient(gatewayConfig);
+    const gatewayBaseUrl = gatewayConfig.baseUrl ?? gatewayConfig.gatewayUrl ?? 'https://gateway.chaoscha.in';
+    console.log(`🌐 Gateway client initialized: ${gatewayBaseUrl}`);
 
     // Initialize Studio client for direct on-chain operations
     this.studio = new StudioClient({
@@ -278,14 +275,6 @@ export class ChaosChainSDK {
       signer: this.walletManager.getWallet(),
       network: typeof config.network === 'string' ? config.network : config.network,
     });
-
-    const isLocalNetwork = String(config.network) === NetworkConfig.LOCAL || String(config.network) === 'local';
-    if (!this.gateway && !isLocalNetwork && !ChaosChainSDK.warnedGatewayMissing) {
-      console.warn(
-        '⚠️ Gateway is not configured. For production workflows, use gatewayConfig to enable Gateway orchestration.'
-      );
-      ChaosChainSDK.warnedGatewayMissing = true;
-    }
     if (
       process.env.NODE_ENV === 'production' &&
       !isLocalNetwork &&
@@ -854,7 +843,7 @@ export class ChaosChainSDK {
    * Get SDK version
    */
   getVersion(): string {
-    return '0.2.3';
+    return '0.2.4';
   }
 
   /**
