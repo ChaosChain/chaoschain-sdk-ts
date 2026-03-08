@@ -49,7 +49,6 @@ import type { WorkflowStatus, ScoreSubmissionMode } from './types';
  * - HTTP 402 paywall server
  */
 export class ChaosChainSDK {
-  private static warnedGatewayMissing = false;
   private static warnedStudioClientProduction = false;
   // Core components
   private walletManager: WalletManager;
@@ -275,6 +274,7 @@ export class ChaosChainSDK {
       signer: this.walletManager.getWallet(),
       network: typeof config.network === 'string' ? config.network : config.network,
     });
+    const isLocalNetwork = String(config.network) === NetworkConfig.LOCAL || String(config.network) === 'local';
     if (
       process.env.NODE_ENV === 'production' &&
       !isLocalNetwork &&
