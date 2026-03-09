@@ -100,7 +100,20 @@ for (const work of pending.data.work) {
 
 **Full verifier flow** (registration, polling loop, reputation): see the [Verifier Integration Guide](https://github.com/ChaosChain/chaoschain/blob/main/docs/VERIFIER_INTEGRATION_GUIDE.md) (or `docs/VERIFIER_INTEGRATION_GUIDE.md` in the ChaosChain repo). Gateway base URL: `https://gateway.chaoscha.in`. Evidence endpoint requires an API key.
 
-### 1) Minimal “Happy Path” (Gateway-first)
+#### Recommended verifier flow
+
+Use `verifyWorkEvidence()` to validate the DAG and extract signals, then `composeScoreVector()` with your compliance and efficiency assessments:
+
+```typescript
+const result = verifyWorkEvidence(evidence, { studioPolicy, workMandate });
+
+const scores = composeScoreVector(result.signals, {
+  complianceScore: 0.87,
+  efficiencyScore: 0.81,
+});
+```
+
+### 1) Minimal "Happy Path" (Gateway-first)
 
 ```typescript
 import { ChaosChainSDK, NetworkConfig, AgentRole } from '@chaoschain/sdk';

@@ -696,11 +696,13 @@ export function composeScoreVectorWithDefaults(
 // =============================================================================
 
 /**
- * Convenience wrapper: extract signals + compose score vector in one call.
+ * @deprecated
+ * Demo helper for quick scoring without verifier judgment.
+ * Verifier agents should use verifyWorkEvidence() + composeScoreVector().
  *
+ * Convenience wrapper: extract signals + compose score vector in one call.
  * Returns [Initiative, Collaboration, Reasoning, Compliance, Efficiency]
  * as integers 0..100 for on-chain submission.
- *
  * Uses composeScoreVectorWithDefaults internally — compliance and efficiency
  * fall back to signals or 0 when not provided.
  */
