@@ -32,6 +32,7 @@ import { ConfigurationError } from './exceptions';
 //
 import { GatewayClient } from './GatewayClient';
 import { StudioClient } from './StudioClient';
+import { SessionClient } from './session/SessionClient';
 import type { WorkflowStatus, ScoreSubmissionMode } from './types';
 
 /**
@@ -67,6 +68,9 @@ export class ChaosChainSDK {
 
   // Gateway client for workflow submission (optional)
   public gateway: GatewayClient | null = null;
+
+  /** Session client for Engineering Studio session management. */
+  public session: SessionClient | null = null;
 
   // Studio client for direct on-chain operations
   public studio: StudioClient;
@@ -267,6 +271,12 @@ export class ChaosChainSDK {
     this.gateway = new GatewayClient(gatewayConfig);
     const gatewayBaseUrl = gatewayConfig.baseUrl ?? gatewayConfig.gatewayUrl ?? 'https://gateway.chaoscha.in';
     console.log(`🌐 Gateway client initialized: ${gatewayBaseUrl}`);
+
+    // Initialize Session client for Engineering Studio
+    this.session = new SessionClient({
+      gatewayUrl: gatewayBaseUrl,
+      apiKey: gatewayConfig.auth?.apiKey,
+    });
 
     // Initialize Studio client for direct on-chain operations
     this.studio = new StudioClient({
@@ -843,7 +853,7 @@ export class ChaosChainSDK {
    * Get SDK version
    */
   getVersion(): string {
-    return '0.2.4';
+    return '0.3.0';
   }
 
   /**

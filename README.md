@@ -11,6 +11,7 @@ The ChaosChain TypeScript SDK enables developers to build autonomous AI agents w
 - **ERC-8004 v1.0** ✅ **100% compliant** - on-chain identity, validation and reputation
 - **ChaosChain Studios** - Multi-agent collaboration with reputation and rewards
 - **Gateway Integration** - Workflow orchestration, crash recovery, and XMTP messaging
+- **Engineering Studio Sessions** - Capture agent work sessions with automatic Evidence DAG construction
 - **x402 payments** using Coinbase's HTTP 402 protocol
 - **Pluggable storage** - IPFS, Pinata, Irys, 0G Storage
 - **Type-safe** - Full TypeScript support with exported types
@@ -50,6 +51,58 @@ Storage backends are optional and intended for development/testing. In productio
 - **Unsupported network** → use `NetworkConfig` or a supported network string.
 - **Missing RPC URL** → set `rpcUrl` explicitly (recommended for production).
 - **Using Gateway without config** → pass `gatewayConfig` or `gatewayUrl` to the constructor.
+
+## Engineering Studio — Session SDK
+
+The Session SDK enables AI agents to capture their work sessions without manually constructing event schemas or DAGs. Sessions automatically build a verifiable Evidence DAG that produces trust profiles for reputation and scoring.
+
+**Quick Start:**
+
+```typescript
+import { SessionClient } from '@chaoschain/sdk';
+
+const client = new SessionClient({
+  gatewayUrl: 'https://gateway.chaoscha.in',
+  apiKey: process.env.CHAOSCHAIN_API_KEY,
+});
+
+// 1. Start a session
+const session = await client.start({
+  studio_address: '0xFA0795fD5D7F58eCAa7Eae35Ad9cB8AED9424Dd0',
+  agent_address: '0x9B4Cef62a0ce1671ccFEFA6a6D8cBFa165c49831',
+  task_type: 'feature',
+});
+
+// 2. Log events (automatic parent chaining)
+await session.log({ summary: 'Planning cache layer implementation' });
+
+// 3. Use step() for common workflows
+await session.step('implementing', 'Added CacheService class');
+await session.step('testing', 'All 47 tests pass');
+
+// 4. Complete and get workflow_id + data_hash
+const { workflow_id, data_hash } = await session.complete();
+```
+
+**step() Mappings:**
+
+| Friendly Name | Canonical Event Type |
+|--------------|---------------------|
+| `planning`    | `plan_created`      |
+| `implementing`| `file_written`      |
+| `testing`     | `test_run`          |
+| `debugging`   | `debug_step`         |
+| `completing`  | `submission_created`|
+
+**View Your Session:**
+
+After completing a session, view it in the browser:
+
+```
+https://gateway.chaoscha.in/v1/sessions/{session_id}/viewer
+```
+
+**Note:** The Session SDK only requires `gatewayUrl` and `apiKey` — no private key or blockchain signer needed for session-only usage. Sessions are automatically bridged into the on-chain WorkSubmission workflow when completed.
 
 ## Canonical Examples
 
@@ -1144,6 +1197,33 @@ npm test -- WalletManager.test.ts
 # Run with coverage
 npm run test:coverage
 ```
+
+## E2E Testing
+
+The SDK includes an end-to-end smoke test that validates the Session SDK against the live gateway:
+
+```bash
+CHAOSCHAIN_API_KEY=cc_... \
+STUDIO_ADDRESS=0x... \
+AGENT_ADDRESS=0x... \
+npx tsx scripts/test-session-e2e.ts
+```
+
+**Required Environment Variables:**
+
+- `CHAOSCHAIN_API_KEY` — Your API key (e.g., `cc_agent_...` or `cc_worker_...`)
+- `STUDIO_ADDRESS` — Studio contract address (e.g., `0xFA0795fD5D7F58eCAa7Eae35Ad9cB8AED9424Dd0`)
+- `AGENT_ADDRESS` — Worker agent wallet address
+
+**What the Test Does:**
+
+1. Creates a `SessionClient` and starts a new session
+2. Logs 4 sequential events with automatic parent chaining
+3. Completes the session and verifies `workflow_id` + `data_hash` are returned
+4. Validates the context endpoint returns correct evidence summary
+5. Verifies the session viewer is accessible
+
+**PASS means:** All SDK methods work correctly, the gateway accepts and processes sessions, and the Evidence DAG is constructed properly. The test exits with code 0 on success, 1 on failure.
 
 ## FAQ
 

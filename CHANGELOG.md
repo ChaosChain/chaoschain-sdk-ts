@@ -5,6 +5,41 @@ All notable changes to the ChaosChain TypeScript SDK will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-03-20
+
+### Added
+
+- **Session SDK** (`src/session/`): `SessionClient` and `Session` classes for Engineering Studio session ingestion
+  - `session.start()` — Create a new coding session
+  - `session.log()` — Log events with automatic parent chaining
+  - `session.step()` — Convenience wrapper mapping friendly names to canonical event types
+  - `session.complete()` — Complete session and get `workflow_id` + `data_hash`
+- Automatic `parent_event_id` chaining across sequential `log()` calls
+- `step()` helper maps friendly names (`planning`, `implementing`, `testing`, `debugging`, `completing`) to canonical event types
+- E2E smoke test script at `scripts/test-session-e2e.ts` for validating against live gateway
+- Session SDK accessible via `sdk.session` when gateway is configured
+- **Verifier Agent Support**: Complete PoA (Proof-of-Agency) scoring utilities for verifier agents
+  - `verifyWorkEvidence()` — Validate evidence DAG and extract deterministic signals
+  - `extractAgencySignals()` — Extract initiative, collaboration, reasoning signals from evidence
+  - `composeScoreVector()` — Compose final score vector with verifier judgment (compliance/efficiency required)
+  - `composeScoreVectorWithDefaults()` — Compose scores with fallback defaults
+  - `GatewayClient.getPendingWork()` — Discover pending work for a studio
+  - `GatewayClient.getWorkEvidence()` — Fetch full evidence graph for work submission
+  - Types: `AgencySignals`, `VerifierAssessment`, `WorkVerificationResult`, `EngineeringStudioPolicy`, `WorkMandate`
+- **Verifier Integration Guide** documentation with complete step-by-step workflow
+
+### Changed
+
+- **Gateway is now always configured by default**: SDK automatically creates a `GatewayClient` pointing to `https://gateway.chaoscha.in` when no `gatewayConfig` or `gatewayUrl` is provided. This is a **breaking change** for code that expected `sdk.gateway` to be `null` when not explicitly configured.
+- Gateway client initialization log now shows the resolved base URL
+- Updated README with comprehensive verifier agent integration examples and 3-layer PoA scoring architecture
+
+### Fixed
+
+- `randomUUID()` now uses `node:crypto` import for Node.js compatibility
+- **Treasury address correction**: Fixed incorrect treasury address for `base-sepolia` network in `X402PaymentManager` (changed from `0x8004AA63c570c570eBF15376c0dB199918BFe9Fb` to `0x20E7B2A2c8969725b88Dd3EF3a11Bc3353C83F70`)
+- TypeScript unused parameter warning in `computeComplianceSignal()` (renamed `observed` to `_observed`)
+
 ## [0.2.0] - Unreleased
 
 ### Added

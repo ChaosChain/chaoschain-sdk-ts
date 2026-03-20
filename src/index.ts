@@ -176,6 +176,14 @@ export type { PendingWorkItem, PendingWorkResponse, WorkEvidenceResponse } from 
 export type { XMTPMessageData, DKGNodeData } from './types';
 
 // ============================================================================
+// Session (Engineering Studio)
+// ============================================================================
+export { Session } from './session/Session';
+export type { SessionLogOptions, SessionCompleteResult } from './session/Session';
+export { SessionClient } from './session/SessionClient';
+export type { SessionClientConfig, SessionStartOptions } from './session/SessionClient';
+
+// ============================================================================
 // Evidence DAG Utilities
 // ============================================================================
 export {
@@ -205,7 +213,7 @@ export type {
 // ============================================================================
 // Version Info
 // ============================================================================
-export const SDK_VERSION = '0.2.4';
+export const SDK_VERSION = '0.3.0';
 export const ERC8004_VERSION = '1.0';
 export const X402_VERSION = '1.0';
 
