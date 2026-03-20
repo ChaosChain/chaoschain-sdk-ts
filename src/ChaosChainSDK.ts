@@ -66,11 +66,11 @@ export class ChaosChainSDK {
   public processIntegrity?: ProcessIntegrity;
   public mandateManager?: MandateManager;
 
-  // Gateway client for workflow submission (optional)
-  public gateway: GatewayClient | null = null;
+  // Gateway client for workflow submission (always initialized)
+  public gateway: GatewayClient;
 
   /** Session client for Engineering Studio session management. */
-  public session: SessionClient | null = null;
+  public session: SessionClient;
 
   // Studio client for direct on-chain operations
   public studio: StudioClient;
@@ -270,7 +270,6 @@ export class ChaosChainSDK {
     const gatewayConfig = config.gatewayConfig ?? (config.gatewayUrl ? { gatewayUrl: config.gatewayUrl } : {});
     this.gateway = new GatewayClient(gatewayConfig);
     const gatewayBaseUrl = gatewayConfig.baseUrl ?? gatewayConfig.gatewayUrl ?? 'https://gateway.chaoscha.in';
-    console.log(`🌐 Gateway client initialized: ${gatewayBaseUrl}`);
 
     // Initialize Session client for Engineering Studio
     this.session = new SessionClient({
@@ -295,17 +294,6 @@ export class ChaosChainSDK {
       );
       ChaosChainSDK.warnedStudioClientProduction = true;
     }
-
-    console.log(`🚀 ChaosChain SDK initialized for ${this.agentName}`);
-    console.log(`   Network: ${this.network}`);
-    console.log(`   Wallet: ${this.walletManager.getAddress()}`);
-    console.log(`   Features:`);
-    console.log(`     - ERC-8004: ✅`);
-    console.log(`     - x402 Payments: ${this.x402PaymentManager ? '✅' : '❌'}`);
-    console.log(`     - Multi-Payment: ${this.paymentManager ? '✅' : '❌'}`);
-    console.log(`     - Google AP2: ${this.googleAP2 ? '✅' : '❌'}`);
-    console.log(`     - Process Integrity: ${this.processIntegrity ? '✅' : '❌'}`);
-    console.log(`     - Storage: ✅`);
   }
 
   // ============================================================================
@@ -890,9 +878,11 @@ export class ChaosChainSDK {
 
   /**
    * Check if Gateway is configured.
+   * Always returns true in v0.3.0+. Gateway is always initialized pointing to
+   * https://gateway.chaoscha.in unless overridden via gatewayConfig.
    */
   isGatewayEnabled(): boolean {
-    return this.gateway !== null;
+    return true;
   }
 
   /**
