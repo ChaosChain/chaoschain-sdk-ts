@@ -232,6 +232,32 @@ describe('Session', () => {
       expect(events[2].agent).toEqual({ agent_address: '0xVerifier', role: 'verifier' });
       expect(events[3].agent).toEqual({ agent_address: '0xDefaultAgent', role: 'worker' });
     });
+
+    it('should support two different workers in the same session', async () => {
+      const session = createSession();
+
+      await session.step('planning', 'Copilot: designing API endpoints');
+      await session.log({
+        summary: 'CodeRabbit: scaffolded request handlers',
+        agent: { agent_address: '0xCodeRabbit', role: 'worker' },
+      });
+      await session.step('implementing', 'Copilot: wired up controller logic');
+      await session.log({
+        summary: 'CodeRabbit: added input validation',
+        agent: { agent_address: '0xCodeRabbit', role: 'worker' },
+      });
+      await session.step('testing', 'Copilot: all tests pass');
+
+      expect(mockedAxios).toHaveBeenCalledTimes(5);
+
+      const events = mockedAxios.mock.calls.map((c: any) => c[0].data[0]);
+
+      expect(events[0].agent).toEqual({ agent_address: '0xDefaultAgent', role: 'worker' });
+      expect(events[1].agent).toEqual({ agent_address: '0xCodeRabbit', role: 'worker' });
+      expect(events[2].agent).toEqual({ agent_address: '0xDefaultAgent', role: 'worker' });
+      expect(events[3].agent).toEqual({ agent_address: '0xCodeRabbit', role: 'worker' });
+      expect(events[4].agent).toEqual({ agent_address: '0xDefaultAgent', role: 'worker' });
+    });
   });
 
   describe('complete()', () => {
