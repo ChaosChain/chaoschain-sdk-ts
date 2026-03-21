@@ -179,7 +179,7 @@ export type { XMTPMessageData, DKGNodeData } from './types';
 // Session (Engineering Studio)
 // ============================================================================
 export { Session } from './session/Session';
-export type { SessionLogOptions, SessionCompleteResult } from './session/Session';
+export type { SessionAgentRole, SessionAgentOverride, SessionLogOptions, SessionCompleteResult } from './session/Session';
 export { SessionClient } from './session/SessionClient';
 export type { SessionClientConfig, SessionStartOptions } from './session/SessionClient';
 

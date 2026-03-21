@@ -16,13 +16,13 @@ const GATEWAY_URL = process.env.GATEWAY_URL ?? 'https://gateway.chaoscha.in';
 // Env validation
 // ---------------------------------------------------------------------------
 
-const required = ['CHAOSCHAIN_API_KEY', 'STUDIO_ADDRESS', 'AGENT_ADDRESS'] as const;
+const required = ['CHAOSCHAIN_API_KEY', 'STUDIO_ADDRESS', 'AGENT_ADDRESS', 'OVERRIDE_AGENT_ADDRESS'] as const;
 const missing = required.filter((k) => !process.env[k]);
 if (missing.length > 0) {
   console.error(`Missing required env vars: ${missing.join(', ')}`);
   console.error('Usage:');
   console.error(
-    '  CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts',
+    '  CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... OVERRIDE_AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts',
   );
   process.exit(1);
 }
@@ -30,6 +30,7 @@ if (missing.length > 0) {
 const API_KEY = process.env.CHAOSCHAIN_API_KEY!;
 const STUDIO = process.env.STUDIO_ADDRESS!;
 const AGENT = process.env.AGENT_ADDRESS!;
+const OVERRIDE_AGENT = process.env.OVERRIDE_AGENT_ADDRESS!;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -57,6 +58,7 @@ function fail(step: number, msg: string): never {
   console.log(`  Gateway:  ${GATEWAY_URL}`);
   console.log(`  Studio:   ${STUDIO}`);
   console.log(`  Agent:    ${AGENT}`);
+  console.log(`  Override: ${OVERRIDE_AGENT}`);
   console.log();
 
   // Step 1 — Create SessionClient
@@ -89,6 +91,26 @@ function fail(step: number, msg: string): never {
   depth++;
   ok(3, `Event logged (parent chain depth: ${depth})`);
 
+  // Step 3b — Agent override events (multi-agent in same session)
+  await session.log({
+    summary: 'Code review: null guard looks correct, suggest adding logging',
+    agent: { agent_address: OVERRIDE_AGENT, role: 'collaborator' },
+  });
+  depth++;
+  ok(3, `Event logged with agent override [${OVERRIDE_AGENT.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
+
+  await session.step('implementing', 'Added structured logging per review feedback');
+  depth++;
+  ok(3, `Event logged with default agent [${AGENT.slice(0, 8)}...] (depth: ${depth})`);
+
+  await session.log({
+    summary: 'Re-review: logging addition approved, LGTM',
+    event_type: 'artifact_created',
+    agent: { agent_address: OVERRIDE_AGENT, role: 'collaborator' },
+  });
+  depth++;
+  ok(3, `Event logged with agent override [${OVERRIDE_AGENT.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
+
   // Step 4 — Complete session
   const result = await session.complete({ summary: 'Bug fixed and tested' });
   ok(4, 'Session completed');
@@ -114,8 +136,8 @@ function fail(step: number, msg: string): never {
 
   const summary = ctx.evidence_summary;
   if (!summary) fail(5, 'evidence_summary missing from context response');
-  if (summary.node_count < 4) {
-    fail(5, `node_count too low: expected >= 4, got ${summary.node_count}`);
+  if (summary.node_count < 7) {
+    fail(5, `node_count too low: expected >= 7, got ${summary.node_count}`);
   }
 
   ok(5, `Evidence summary: node_count=${summary.node_count}, roots=${(summary.roots ?? []).length}, terminals=${(summary.terminals ?? []).length}`);
