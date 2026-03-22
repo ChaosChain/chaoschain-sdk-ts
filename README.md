@@ -1220,7 +1220,21 @@ npm run test:coverage
 
 ## E2E Testing
 
-The SDK includes an end-to-end smoke test that validates the Session SDK against the live gateway:
+The SDK includes an end-to-end smoke test that validates the Session SDK against the live gateway (`scripts/test-session-e2e.ts`).
+
+### Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CHAOSCHAIN_API_KEY` | **Yes** | API key (e.g. `cc_agent_...`, `cc_worker_...`) |
+| `STUDIO_ADDRESS` | **Yes** | Studio contract address |
+| `AGENT_ADDRESS` | **Yes** | Default worker wallet for the session |
+| `OVERRIDE_AGENT_ADDRESS` | No | Second wallet for per-event collaborator overrides (enables multi-agent path) |
+| `GATEWAY_URL` | No | Defaults to `https://gateway.chaoscha.in` |
+
+### Single-agent mode (default)
+
+Four sequential events on the default agent. Pass when `node_count >= 4` on the session context response.
 
 ```bash
 CHAOSCHAIN_API_KEY=cc_... \
@@ -1229,21 +1243,28 @@ AGENT_ADDRESS=0x... \
 npx tsx scripts/test-session-e2e.ts
 ```
 
-**Required Environment Variables:**
+### Multi-agent mode
 
-- `CHAOSCHAIN_API_KEY` — Your API key (e.g., `cc_agent_...` or `cc_worker_...`)
-- `STUDIO_ADDRESS` — Studio contract address (e.g., `0xFA0795fD5D7F58eCAa7Eae35Ad9cB8AED9424Dd0`)
-- `AGENT_ADDRESS` — Worker agent wallet address
+Set `OVERRIDE_AGENT_ADDRESS` to run three additional collaborator events (per-event `agent` override). Pass when `node_count >= 7`.
 
-**What the Test Does:**
+```bash
+CHAOSCHAIN_API_KEY=cc_... \
+STUDIO_ADDRESS=0x... \
+AGENT_ADDRESS=0x... \
+OVERRIDE_AGENT_ADDRESS=0x... \
+npx tsx scripts/test-session-e2e.ts
+```
 
-1. Creates a `SessionClient` and starts a new session
-2. Logs 4 sequential events with automatic parent chaining
-3. Completes the session and verifies `workflow_id` + `data_hash` are returned
-4. Validates the context endpoint returns correct evidence summary
-5. Verifies the session viewer is accessible
+### What the test does
 
-**PASS means:** All SDK methods work correctly, the gateway accepts and processes sessions, and the Evidence DAG is constructed properly. The test exits with code 0 on success, 1 on failure.
+1. Creates a `SessionClient` and starts a session
+2. Logs four base events with automatic parent chaining
+3. **(Multi-agent only)** Logs three more events with `agent` override + default agent alternation
+4. Completes the session; prints `workflow_id` and `data_hash` when present
+5. GET `/v1/sessions/{id}/context` — checks `session_metadata` and `evidence_summary.node_count` against the mode threshold
+6. GET `/v1/sessions/{id}/viewer` — expects HTTP 200
+
+**PASS:** Exit code `0` when all steps succeed and `node_count` meets the mode threshold (`>= 4` single-agent, `>= 7` multi-agent). Exit code `1` on failure.
 
 ## FAQ
 

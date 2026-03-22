@@ -213,7 +213,7 @@ export type {
 // ============================================================================
 // Version Info
 // ============================================================================
-export const SDK_VERSION = '0.3.0';
+export const SDK_VERSION = '0.3.1';
 export const ERC8004_VERSION = '1.0';
 export const X402_VERSION = '1.0';
 

@@ -5,6 +5,24 @@ All notable changes to the ChaosChain TypeScript SDK will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-03-22
+
+### Added
+
+- **Multi-agent sessions (per-event agent override)** on `Session.log()` and `Session.step()`:
+  - Optional `agent: { agent_address, role? }` on `log()` — override applies to that event only
+  - Optional third argument on `step()` for the same override
+  - Types: `SessionAgentOverride`, `SessionAgentRole` (`worker` | `verifier` | `collaborator`), aligned with gateway validation
+- Unit tests in `tests/Session.test.ts` for override paths and multi-agent sequences
+
+### Changed
+
+- **`scripts/test-session-e2e.ts`**: `OVERRIDE_AGENT_ADDRESS` is **optional**. Without it, the smoke test runs the original 4-event single-agent path (`node_count >= 4`). With it set, the script logs extra collaborator events and expects `node_count >= 7`.
+
+### Fixed
+
+- README **E2E Testing** section now documents required vs optional env vars and both smoke-test modes
+
 ## [0.3.0] - 2026-03-20
 
 ### Added

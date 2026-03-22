@@ -1,10 +1,17 @@
 /**
  * E2E smoke test — Session SDK against the live ChaosChain gateway.
  *
- * Usage:
+ * Required env: CHAOSCHAIN_API_KEY, STUDIO_ADDRESS, AGENT_ADDRESS
+ * Optional: OVERRIDE_AGENT_ADDRESS — if unset, single-agent path (4 events, node_count >= 4).
+ *           If set, adds 3 collaborator override events (node_count >= 7).
+ *
+ * Usage (single-agent):
  *   CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts
  *
- * All env vars are required; the script exits 1 with a clear message if any are missing.
+ * Usage (multi-agent / per-event override):
+ *   CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... OVERRIDE_AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts
+ *
+ * Optional: GATEWAY_URL (defaults to https://gateway.chaoscha.in)
  */
 
 import axios from 'axios';
@@ -16,11 +23,15 @@ const GATEWAY_URL = process.env.GATEWAY_URL ?? 'https://gateway.chaoscha.in';
 // Env validation
 // ---------------------------------------------------------------------------
 
-const required = ['CHAOSCHAIN_API_KEY', 'STUDIO_ADDRESS', 'AGENT_ADDRESS', 'OVERRIDE_AGENT_ADDRESS'] as const;
+const required = ['CHAOSCHAIN_API_KEY', 'STUDIO_ADDRESS', 'AGENT_ADDRESS'] as const;
 const missing = required.filter((k) => !process.env[k]);
 if (missing.length > 0) {
   console.error(`Missing required env vars: ${missing.join(', ')}`);
-  console.error('Usage:');
+  console.error('Usage (single-agent, 4 events):');
+  console.error(
+    '  CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts',
+  );
+  console.error('Usage (multi-agent, +3 collaborator events):');
   console.error(
     '  CHAOSCHAIN_API_KEY=cc_... STUDIO_ADDRESS=0x... AGENT_ADDRESS=0x... OVERRIDE_AGENT_ADDRESS=0x... npx tsx scripts/test-session-e2e.ts',
   );
@@ -30,7 +41,9 @@ if (missing.length > 0) {
 const API_KEY = process.env.CHAOSCHAIN_API_KEY!;
 const STUDIO = process.env.STUDIO_ADDRESS!;
 const AGENT = process.env.AGENT_ADDRESS!;
-const OVERRIDE_AGENT = process.env.OVERRIDE_AGENT_ADDRESS!;
+const OVERRIDE_AGENT = process.env.OVERRIDE_AGENT_ADDRESS?.trim();
+const multiAgentMode = Boolean(OVERRIDE_AGENT);
+const minNodeCount = multiAgentMode ? 7 : 4;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -58,7 +71,10 @@ function fail(step: number, msg: string): never {
   console.log(`  Gateway:  ${GATEWAY_URL}`);
   console.log(`  Studio:   ${STUDIO}`);
   console.log(`  Agent:    ${AGENT}`);
-  console.log(`  Override: ${OVERRIDE_AGENT}`);
+  console.log(
+    `  Mode:     ${multiAgentMode ? `multi-agent (OVERRIDE_AGENT=${OVERRIDE_AGENT!.slice(0, 10)}...)` : 'single-agent (no OVERRIDE_AGENT_ADDRESS)'}`,
+  );
+  console.log(`  Expect:   node_count >= ${minNodeCount}`);
   console.log();
 
   // Step 1 — Create SessionClient
@@ -74,7 +90,7 @@ function fail(step: number, msg: string): never {
   });
   ok(2, `Session created: ${session.sessionId}`);
 
-  // Step 3 — Log 4 events in sequence
+  // Step 3 — Log 4 events in sequence (single-agent)
   await session.log({ summary: 'Received task: fix null pointer in auth middleware' });
   depth++;
   ok(3, `Event logged (parent chain depth: ${depth})`);
@@ -92,24 +108,26 @@ function fail(step: number, msg: string): never {
   ok(3, `Event logged (parent chain depth: ${depth})`);
 
   // Step 3b — Agent override events (multi-agent in same session)
-  await session.log({
-    summary: 'Code review: null guard looks correct, suggest adding logging',
-    agent: { agent_address: OVERRIDE_AGENT, role: 'collaborator' },
-  });
-  depth++;
-  ok(3, `Event logged with agent override [${OVERRIDE_AGENT.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
+  if (multiAgentMode) {
+    await session.log({
+      summary: 'Code review: null guard looks correct, suggest adding logging',
+      agent: { agent_address: OVERRIDE_AGENT!, role: 'collaborator' },
+    });
+    depth++;
+    ok(3, `Event logged with agent override [${OVERRIDE_AGENT!.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
 
-  await session.step('implementing', 'Added structured logging per review feedback');
-  depth++;
-  ok(3, `Event logged with default agent [${AGENT.slice(0, 8)}...] (depth: ${depth})`);
+    await session.step('implementing', 'Added structured logging per review feedback');
+    depth++;
+    ok(3, `Event logged with default agent [${AGENT.slice(0, 8)}...] (depth: ${depth})`);
 
-  await session.log({
-    summary: 'Re-review: logging addition approved, LGTM',
-    event_type: 'artifact_created',
-    agent: { agent_address: OVERRIDE_AGENT, role: 'collaborator' },
-  });
-  depth++;
-  ok(3, `Event logged with agent override [${OVERRIDE_AGENT.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
+    await session.log({
+      summary: 'Re-review: logging addition approved, LGTM',
+      event_type: 'artifact_created',
+      agent: { agent_address: OVERRIDE_AGENT!, role: 'collaborator' },
+    });
+    depth++;
+    ok(3, `Event logged with agent override [${OVERRIDE_AGENT!.slice(0, 8)}...] role=collaborator (depth: ${depth})`);
+  }
 
   // Step 4 — Complete session
   const result = await session.complete({ summary: 'Bug fixed and tested' });
@@ -136,8 +154,11 @@ function fail(step: number, msg: string): never {
 
   const summary = ctx.evidence_summary;
   if (!summary) fail(5, 'evidence_summary missing from context response');
-  if (summary.node_count < 7) {
-    fail(5, `node_count too low: expected >= 7, got ${summary.node_count}`);
+  if (summary.node_count < minNodeCount) {
+    fail(
+      5,
+      `node_count too low: expected >= ${minNodeCount} (${multiAgentMode ? 'multi-agent' : 'single-agent'} mode), got ${summary.node_count}`,
+    );
   }
 
   ok(5, `Evidence summary: node_count=${summary.node_count}, roots=${(summary.roots ?? []).length}, terminals=${(summary.terminals ?? []).length}`);
