@@ -3,7 +3,7 @@
  * TypeScript types and interfaces for building verifiable AI agents
  */
 
-import { ethers } from 'ethers';
+import type { ethers } from 'ethers';
 import type { EvidencePackage } from './evidence';
 
 // ============================================================================

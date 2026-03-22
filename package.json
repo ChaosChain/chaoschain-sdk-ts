@@ -12,6 +12,16 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./session": {
+      "types": "./dist/session/index.d.ts",
+      "import": "./dist/session/index.js",
+      "require": "./dist/session/index.cjs"
+    },
+    "./gateway": {
+      "types": "./dist/gateway/index.d.ts",
+      "import": "./dist/gateway/index.js",
+      "require": "./dist/gateway/index.cjs"
+    },
     "./providers/storage": {
       "types": "./dist/providers/storage/index.d.ts",
       "import": "./dist/providers/storage/index.js",
