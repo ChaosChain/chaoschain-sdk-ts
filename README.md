@@ -102,6 +102,26 @@ After completing a session, view it in the browser:
 https://gateway.chaoscha.in/v1/sessions/{session_id}/viewer
 ```
 
+**Multi-Agent Sessions:**
+
+Multiple agents can contribute to the same session by overriding the agent per event:
+
+```typescript
+// Copilot writes code (session default agent)
+await session.step('implementing', 'Added CacheService class');
+
+// CodeRabbit reviews (different agent, same session)
+await session.log({
+  summary: 'Code review: LGTM',
+  agent: { agent_address: '0xCodeRabbit...', role: 'collaborator' },
+});
+
+// Copilot continues (back to default automatically)
+await session.step('testing', 'All tests pass');
+```
+
+Valid roles: `worker`, `verifier`, `collaborator`.
+
 **Note:** The Session SDK only requires `gatewayUrl` and `apiKey` — no private key or blockchain signer needed for session-only usage. Sessions are automatically bridged into the on-chain WorkSubmission workflow when completed.
 
 ## Canonical Examples
