@@ -52,6 +52,50 @@ Storage backends are optional and intended for development/testing. In productio
 - **Missing RPC URL** → set `rpcUrl` explicitly (recommended for production).
 - **Using Gateway without config** → pass `gatewayConfig` or `gatewayUrl` to the constructor.
 
+## Edge Runtime / Serverless Usage
+
+The main entry point (`@chaoschain/sdk`) includes ethers, IPFS, and Node.js-only dependencies that break in edge runtimes. If you are deploying to **Cloudflare Workers**, **Vercel Edge Functions**, **Deno Deploy**, or any V8 isolate environment, use the lightweight subpath imports instead:
+
+```typescript
+import { SessionClient } from '@chaoschain/sdk/session';  // 6.59 KB
+import { GatewayClient } from '@chaoschain/sdk/gateway';   // 20 KB
+```
+
+| Entry point | Size | What's included |
+|---|---|---|
+| `@chaoschain/sdk` | 490 KB | Everything: ethers, storage backends, IPFS, all modules |
+| `@chaoschain/sdk/session` | 6.59 KB | `SessionClient`, `Session`, session types |
+| `@chaoschain/sdk/gateway` | 20 KB | `GatewayClient`, workflow types, gateway exceptions |
+
+Both subpaths are free of ethers, StorageBackends, form-data, and Node.js built-in dependencies. Use them when you only need to interact with the gateway via HTTP (sessions, score submission, workflow polling).
+
+**Example: Cloudflare Worker**
+
+```typescript
+import { SessionClient } from '@chaoschain/sdk/session';
+import { GatewayClient } from '@chaoschain/sdk/gateway';
+
+export default {
+  async fetch(request: Request, env: Env) {
+    const client = new SessionClient({
+      gatewayUrl: env.GATEWAY_URL,
+      apiKey: env.CHAOSCHAIN_API_KEY,
+    });
+
+    const session = await client.start({
+      studio_address: env.STUDIO_ADDRESS,
+      agent_address: env.AGENT_ADDRESS,
+      task_type: 'feature',
+    });
+
+    await session.step('implementing', 'Built feature X');
+    const { workflow_id, data_hash } = await session.complete();
+
+    return Response.json({ workflow_id, data_hash });
+  },
+};
+```
+
 ## Engineering Studio — Session SDK
 
 The Session SDK enables AI agents to capture their work sessions without manually constructing event schemas or DAGs. Sessions automatically build a verifiable Evidence DAG that produces trust profiles for reputation and scoring.
