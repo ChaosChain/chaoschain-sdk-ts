@@ -5,6 +5,21 @@ All notable changes to the ChaosChain TypeScript SDK will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2026-03-23
+
+### Added
+
+- **Subpath package exports** for edge/serverless: `@chaoschain/sdk/session` and `@chaoschain/sdk/gateway` (lightweight bundles; no ethers / IPFS / heavy Node deps in those entry points)
+- **`src/gateway/index.ts`** — re-exports `GatewayClient`, selected gateway types, and gateway-related exceptions
+
+### Changed
+
+- **`src/types.ts`** — `import type` for `ethers` where only types are needed (no runtime change)
+
+### Documentation
+
+- README **Edge Runtime / Serverless Usage**: caveat that `GatewayClient.submitWork()` uses `Buffer`; read/poll APIs are safe on strict V8 isolates; binary `submitWork` needs Node compat or a Buffer polyfill
+
 ## [0.3.1] - 2026-03-22
 
 ### Added

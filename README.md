@@ -61,6 +61,11 @@ import { SessionClient } from '@chaoschain/sdk/session';  // 6.59 KB
 import { GatewayClient } from '@chaoschain/sdk/gateway';   // 20 KB
 ```
 
+> **Note:** `GatewayClient.submitWork()` uses `Buffer` internally for binary encoding.
+> For read-only and polling operations (`getWorkflow`, `getPendingWork`, `getWorkEvidence`),
+> the gateway subpath works in all V8 isolate environments.
+> For `submitWork` with binary content, use Node.js compat mode or a Buffer polyfill.
+
 | Entry point | Size | What's included |
 |---|---|---|
 | `@chaoschain/sdk` | 490 KB | Everything: ethers, storage backends, IPFS, all modules |
