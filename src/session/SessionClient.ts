@@ -69,8 +69,16 @@ export class SessionClient {
    * and complete the session. The gateway persists all events and constructs the
    * Evidence DAG automatically.
    *
-   * @param opts - Session creation parameters.
-   * @returns A live {@link Session} bound to the newly created session ID.
+   * The returned session exposes `session.sessionId`, `session.epoch`,
+   * `session.studioAddress`, and `session.agentAddress`.
+   *
+   * @param opts.studio_address - Studio contract address (required).
+   * @param opts.agent_address - Worker agent wallet address (required).
+   * @param opts.task_type - Task classification: `"feature"`, `"bugfix"`, `"refactor"`, etc. (default: `"general"`).
+   * @param opts.work_mandate_id - Work mandate identifier (default: `"generic-task"`).
+   * @param opts.studio_policy_version - Studio policy version (default: `"engineering-studio-default-v1"`).
+   * @param opts.session_id - Client-provided session ID. Server generates one if omitted.
+   * @returns A live {@link Session} bound to the newly created session ID and epoch.
    * @throws Error if the gateway returns a non-2xx status.
    */
   async start(opts: SessionStartOptions): Promise<Session> {
@@ -87,7 +95,7 @@ export class SessionClient {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) headers['X-API-Key'] = this.apiKey;
 
-    let data: { data: { session_id: string } };
+    let data: { data: { session_id: string; epoch: number } };
     try {
       const res = await axios({ method: 'POST', url, data: body, headers, timeout: 30_000 });
       data = res.data as typeof data;
@@ -112,6 +120,7 @@ export class SessionClient {
       studioPolicyVersion: opts.studio_policy_version ?? 'engineering-studio-default-v1',
       workMandateId: opts.work_mandate_id ?? 'generic-task',
       taskType: opts.task_type ?? 'general',
+      epoch: data.data.epoch,
     });
   }
 }

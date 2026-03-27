@@ -6,12 +6,13 @@ const BASE_URL = 'https://gateway.chaoscha.in';
 
 describe('External SDK integration smoke', () => {
   it('supports external verifier workflow imports and pending work fetch', async () => {
-    const gateway = new GatewayClient({ baseUrl: BASE_URL });
+    const gateway = new GatewayClient({ baseUrl: BASE_URL, timeout: 3000 });
 
     try {
       const pending = await gateway.getPendingWork(STUDIO_ADDRESS);
       expect(Array.isArray(pending.data.work)).toBe(true);
     } catch (error) {
+      // Expected in CI: gateway not reachable
       expect(error).toBeDefined();
     }
 
