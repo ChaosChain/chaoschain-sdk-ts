@@ -2,7 +2,7 @@
 
 **Production-ready TypeScript/JavaScript SDK for building verifiable AI agents with on-chain identity**
 
-[![npm version](https://badge.fury.io/js/%40chaoschain%2Fsdk.svg)](https://www.npmjs.com/package/@chaoschain/sdk)
+[![npm version](https://img.shields.io/npm/v/@chaoschain/sdk.svg)](https://www.npmjs.com/package/@chaoschain/sdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![ERC-8004 v1.0](https://img.shields.io/badge/ERC--8004-v1.0-success.svg)](https://eips.ethereum.org/EIPS/eip-8004)
 
