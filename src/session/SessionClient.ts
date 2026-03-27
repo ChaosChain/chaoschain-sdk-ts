@@ -87,7 +87,7 @@ export class SessionClient {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (this.apiKey) headers['X-API-Key'] = this.apiKey;
 
-    let data: { data: { session_id: string } };
+    let data: { data: { session_id: string; epoch: number } };
     try {
       const res = await axios({ method: 'POST', url, data: body, headers, timeout: 30_000 });
       data = res.data as typeof data;
@@ -112,6 +112,7 @@ export class SessionClient {
       studioPolicyVersion: opts.studio_policy_version ?? 'engineering-studio-default-v1',
       workMandateId: opts.work_mandate_id ?? 'generic-task',
       taskType: opts.task_type ?? 'general',
+      epoch: data.data.epoch,
     });
   }
 }

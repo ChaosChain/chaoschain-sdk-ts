@@ -48,6 +48,7 @@ export interface SessionLogOptions {
 export interface SessionCompleteResult {
   workflow_id: string | null;
   data_hash: string | null;
+  epoch: number;
 }
 
 /** Canonical event-type mappings for {@link Session.step}. */
@@ -66,6 +67,8 @@ const STEP_TYPE_MAP: Record<string, string> = {
 export class Session {
   /** Session ID returned by the gateway. */
   public readonly sessionId: string;
+  /** Epoch number returned by the gateway. */
+  public readonly epoch: number;
 
   private readonly gatewayUrl: string;
   private readonly apiKey: string | undefined;
@@ -87,8 +90,10 @@ export class Session {
     studioPolicyVersion: string;
     workMandateId: string;
     taskType: string;
+    epoch: number;
   }) {
     this.sessionId = opts.sessionId;
+    this.epoch = opts.epoch;
     this.gatewayUrl = opts.gatewayUrl;
     this.apiKey = opts.apiKey;
     this.lastEventId = opts.lastEventId ?? null;
@@ -177,12 +182,13 @@ export class Session {
     if (opts?.summary) body.summary = opts.summary;
 
     const data = await this.post<{
-      data: { workflow_id: string | null; data_hash: string | null };
+      data: { workflow_id: string | null; data_hash: string | null; epoch: number };
     }>(`/v1/sessions/${this.sessionId}/complete`, body);
 
     return {
       workflow_id: data.data?.workflow_id ?? null,
       data_hash: data.data?.data_hash ?? null,
+      epoch: data.data.epoch,
     };
   }
 

@@ -22,6 +22,7 @@ function createSession(overrides?: Partial<ConstructorParameters<typeof Session>
     studioPolicyVersion: 'engineering-studio-default-v1',
     workMandateId: 'generic-task',
     taskType: 'general',
+    epoch: 18,
     ...overrides,
   });
 }
@@ -260,27 +261,41 @@ describe('Session', () => {
     });
   });
 
+  describe('epoch', () => {
+    it('should expose epoch from session creation', () => {
+      const session = createSession();
+      expect(session.epoch).toBe(18);
+    });
+
+    it('should expose epoch with custom value', () => {
+      const session = createSession({ epoch: 42 });
+      expect(session.epoch).toBe(42);
+    });
+  });
+
   describe('complete()', () => {
-    it('should complete session without affecting agent override behavior', async () => {
+    it('should return workflow_id, data_hash, and epoch', async () => {
       const session = createSession();
       mockedAxios.mockResolvedValue({
-        data: { data: { workflow_id: 'wf-123', data_hash: '0xabc' } },
+        data: { data: { workflow_id: 'wf-123', data_hash: '0xabc', epoch: 18 } },
       });
 
       const result = await session.complete({ summary: 'Done' });
 
       expect(result.workflow_id).toBe('wf-123');
       expect(result.data_hash).toBe('0xabc');
+      expect(result.epoch).toBe(18);
     });
 
     it('should return null values when gateway has no workflow engine', async () => {
       const session = createSession();
-      mockedAxios.mockResolvedValue({ data: { data: {} } });
+      mockedAxios.mockResolvedValue({ data: { data: { epoch: 18 } } });
 
       const result = await session.complete();
 
       expect(result.workflow_id).toBeNull();
       expect(result.data_hash).toBeNull();
+      expect(result.epoch).toBe(18);
     });
   });
 });
