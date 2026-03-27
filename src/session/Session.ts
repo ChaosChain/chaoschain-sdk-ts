@@ -73,6 +73,8 @@ export class Session {
   public readonly studioAddress: string;
   /** Default agent wallet address for this session. */
   public readonly agentAddress: string;
+  /** URL to view this session's Evidence DAG in the browser. */
+  public readonly viewerUrl: string;
 
   private readonly gatewayUrl: string;
   private readonly apiKey: string | undefined;
@@ -96,6 +98,7 @@ export class Session {
   }) {
     this.sessionId = opts.sessionId;
     this.epoch = opts.epoch;
+    this.viewerUrl = `${opts.gatewayUrl}/v1/sessions/${opts.sessionId}/viewer`;
     this.gatewayUrl = opts.gatewayUrl;
     this.apiKey = opts.apiKey;
     this.lastEventId = opts.lastEventId ?? null;
