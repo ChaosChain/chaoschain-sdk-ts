@@ -69,11 +69,13 @@ export class Session {
   public readonly sessionId: string;
   /** Epoch number returned by the gateway. */
   public readonly epoch: number;
+  /** Studio contract address for this session. */
+  public readonly studioAddress: string;
+  /** Default agent wallet address for this session. */
+  public readonly agentAddress: string;
 
   private readonly gatewayUrl: string;
   private readonly apiKey: string | undefined;
-  private readonly studioAddress: string;
-  private readonly agentAddress: string;
   private readonly studioPolicyVersion: string;
   private readonly workMandateId: string;
   private readonly taskType: string;
@@ -110,7 +112,12 @@ export class Session {
    * Automatically generates `event_id`, `timestamp`, and chains `parent_event_ids`
    * from the previous event so the gateway can build a causal DAG.
    *
-   * @param opts - Event details. Only `summary` is required.
+   * @param opts.summary - Human-readable description of what happened (required).
+   * @param opts.event_type - Canonical event type (default: `"artifact_created"`).
+   * @param opts.metadata - Arbitrary key-value metadata attached to the event.
+   * @param opts.agent - Override the session-level agent for this event.
+   *   Pass `{ agent_address, role? }` to emit the event from a different agent.
+   *   Valid roles: `"worker"`, `"verifier"`, `"collaborator"`. Defaults to `"worker"`.
    * @throws Error if the gateway returns a non-2xx status.
    */
   async log(opts: SessionLogOptions): Promise<void> {
@@ -155,8 +162,9 @@ export class Session {
    *
    * Unknown step types fall back to `artifact_created`.
    *
-   * @param stepType - Friendly step name.
+   * @param stepType - Friendly step name (`"planning"`, `"implementing"`, `"testing"`, `"debugging"`, `"completing"`).
    * @param summary - What happened in this step.
+   * @param agent - Optional agent override for this event. Same as `log({ agent })`.
    */
   async step(stepType: string, summary: string, agent?: SessionAgentOverride): Promise<void> {
     const eventType = STEP_TYPE_MAP[stepType] ?? 'artifact_created';
@@ -167,11 +175,13 @@ export class Session {
    * Complete the session.
    *
    * Triggers the on-chain WorkSubmission workflow (if the gateway is configured for it)
-   * and returns `workflow_id` + `data_hash` for downstream verification/scoring.
+   * and returns the session result.
    *
-   * @param opts - Optional status (`"completed"` | `"failed"`) and summary.
-   * @returns `{ workflow_id, data_hash }` — both may be `null` if the gateway
-   *          workflow engine is not configured.
+   * @param opts.status - `"completed"` or `"failed"` (default: `"completed"`).
+   * @param opts.summary - Human-readable summary of the session outcome.
+   * @returns `{ workflow_id, data_hash, epoch }` — `workflow_id` and `data_hash`
+   *          may be `null` if the gateway workflow engine is not configured.
+   *          `epoch` is the epoch this session belongs to.
    * @throws Error if the gateway returns a non-2xx status.
    */
   async complete(

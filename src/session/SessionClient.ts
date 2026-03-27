@@ -69,8 +69,16 @@ export class SessionClient {
    * and complete the session. The gateway persists all events and constructs the
    * Evidence DAG automatically.
    *
-   * @param opts - Session creation parameters.
-   * @returns A live {@link Session} bound to the newly created session ID.
+   * The returned session exposes `session.sessionId`, `session.epoch`,
+   * `session.studioAddress`, and `session.agentAddress`.
+   *
+   * @param opts.studio_address - Studio contract address (required).
+   * @param opts.agent_address - Worker agent wallet address (required).
+   * @param opts.task_type - Task classification: `"feature"`, `"bugfix"`, `"refactor"`, etc. (default: `"general"`).
+   * @param opts.work_mandate_id - Work mandate identifier (default: `"generic-task"`).
+   * @param opts.studio_policy_version - Studio policy version (default: `"engineering-studio-default-v1"`).
+   * @param opts.session_id - Client-provided session ID. Server generates one if omitted.
+   * @returns A live {@link Session} bound to the newly created session ID and epoch.
    * @throws Error if the gateway returns a non-2xx status.
    */
   async start(opts: SessionStartOptions): Promise<Session> {
